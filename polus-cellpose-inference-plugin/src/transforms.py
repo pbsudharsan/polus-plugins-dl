@@ -1,4 +1,8 @@
+'''
 
+Code sourced   from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+
+'''
 import numpy as np
 import cv2
 
@@ -14,16 +18,11 @@ def _taper_mask(bsize=224, sig=7.5):
 def unaugment_tiles(y):
     """ reverse test-time augmentations for averaging
 
-    Parameters
-    ----------
-
-    y: float32
-        array that's ntiles_y x ntiles_x x chan x Ly x Lx where chan = (dY, dX, cell prob);
+    Args:
+    y(list[float32]): array that's ntiles_y x ntiles_x x chan x Ly x Lx where chan = (dY, dX, cell prob);
     
-    Returns
-    -------
-
-    y: float32
+    Returns:
+    y(float32):
 
     """
     for j in range(y.shape[0]):
@@ -45,31 +44,17 @@ def unaugment_tiles(y):
 def average_tiles(y, ysub, xsub, Ly, Lx):
     """ average results of network over tiles
 
-    Parameters
-    -------------
-
-    y: float, [ntiles x 3 x bsize x bsize]
-        output of cellpose network for each tile
-
-    ysub : list
-        list of arrays with start and end of tiles in Y of length ntiles
-
-    xsub : list
-        list of arrays with start and end of tiles in X of length ntiles
-
-    Ly : int
-        size of pre-tiled image in Y (may be larger than original image if
+    Args:
+    y(list[float]):  [ntiles x 3 x bsize x bsize]output of cellpose network for each tile
+    ysub(list): list of arrays with start and end of tiles in Y of length ntiles
+    xsub(list) : list of arrays with start and end of tiles in X of length ntiles
+    Ly (int) :  size of pre-tiled image in Y (may be larger than original image if
+        image size is less than bsize)
+    Lx(int) : size of pre-tiled image in X (may be larger than original image if
         image size is less than bsize)
 
-    Lx : int
-        size of pre-tiled image in X (may be larger than original image if
-        image size is less than bsize)
-
-    Returns
-    -------------
-
-    yf: float32, [3 x Ly x Lx]
-        network output averaged over tiles
+    Returns:
+    yf(array[float32]):  [3 x Ly x Lx] network output averaged over tiles
 
     """
     Navg = np.zeros((Ly,Lx))
@@ -86,36 +71,21 @@ def average_tiles(y, ysub, xsub, Ly, Lx):
 
 def make_tiles(imgi, bsize=224, augment=True):
     """ make tiles of image to run at test-time
-
     there are 4 versions of tiles
         * original
         * flipped vertically
         * flipped horizontally
         * flipped vertically and horizontally
 
-    Parameters
-    ----------
-    imgi : float32
-        array that's nchan x Ly x Lx
+    Args :
+    imgi(array[float32]) : array that's nchan x Ly x Lx
 
-    Returns
-    -------
-    IMG : float32
-        array that's ntiles x nchan x bsize x bsize
-
-    ysub : list
-        list of arrays with start and end of tiles in Y of length ntiles
-
-    xsub : list
-        list of arrays with start and end of tiles in X of length ntiles
-
-    Ly : int
-        size of total image pre-tiling in Y (may be larger than original image if
-        image size is less than bsize)
-
-    Lx : int
-        size of total image pre-tiling in X (may be larger than original image if
-        image size is less than bsize)
+    Returns:
+    IMG (array[float32]): array that's ntiles x nchan x bsize x bsize
+    ysub (list of arrays): list of arrays with start and end of tiles in Y of length ntiles
+    xsub (list of arrays) : list of arrays with start and end of tiles in X of length ntiles
+    Ly (int): size of total image pre-tiling in Y (may be larger than original image if image size is less than bsize)
+    Lx(int) : size of total image pre-tiling in X (may be larger than original image if image size is less than bsize)
 
     """
 
@@ -181,24 +151,15 @@ def normalize99(img):
 
 def reshape(data, channels=[0,0], invert=False):
     """ reshape data using channels and normalize intensities (w/ optional inversion)
+    Args:
+    data(array) : numpy array that's (Z x ) Ly x Lx x nchan
+    channels(optional[list of int]) :  default [0,0]. First element of list is the channel to segment (0=grayscale, 1=red, 2=blue, 3=green).
+    Second element of list is the optional nuclear channel (0=none, 1=red, 2=blue, 3=green).
+    For instance, to train on grayscale images, input [0,0]. To train on images with cells in green and nuclei in blue, input [2,3].
+    invert(bool) : invert intensities
 
-    Parameters
-    ----------
-
-    data : numpy array that's (Z x ) Ly x Lx x nchan
-
-    channels : list of int of length 2 (optional, default [0,0])
-        First element of list is the channel to segment (0=grayscale, 1=red, 2=blue, 3=green).
-        Second element of list is the optional nuclear channel (0=none, 1=red, 2=blue, 3=green).
-        For instance, to train on grayscale images, input [0,0]. To train on images with cells
-        in green and nuclei in blue, input [2,3].
-
-    invert : bool
-        invert intensities
-
-    Returns
-    -------
-    data : numpy array that's nchan x (Z x ) Ly x Lx
+    Returns :
+    data (array): numpy array that's nchan x (Z x ) Ly x Lx
 
     """
     data = data.astype(np.float32)
@@ -244,17 +205,11 @@ def normalize_img(img):
     """ normalize each channel of the image so that so that 0.0=1st percentile
     and 1.0=99th percentile of image intensities
 
-    Parameters
-    ------------
+    Args:
+    img(ND-array): ND-array.image of size [nchan x Ly x Lx]
 
-    img: ND-array
-        image of size [nchan x Ly x Lx]
-
-    Returns
-    ---------------
-
-    img: ND-array, float32
-        normalized image of size [nchan x Ly x Lx]
+    Returns:
+    img( ND-array[float32]): normalized image of size [nchan x Ly x Lx]
 
     """
     img = img.astype(np.float32)
@@ -267,17 +222,11 @@ def normalize_img(img):
 def resize_image(img0, Ly, Lx):
     """ resize image for computing flows / unresize for computing dynamics
 
-    Parameters
-    -------------
+    Args:
+    img0 (ND-array): image of size [y x x x nchan] or [Lz x y x x x nchan]
 
-    img0: ND-array
-        image of size [y x x x nchan] or [Lz x y x x x nchan]
-
-    Returns
-    --------------
-
-    imgs: ND-array 
-        image of size [Ly x Lx x nchan] or [Lz x Ly x Lx x nchan]
+    Returns:
+    imgs(ND-array): image of size [Ly x Lx x nchan] or [Lz x Ly x Lx x nchan]
 
     """
     if img0.ndim==4:
@@ -293,25 +242,14 @@ def resize_image(img0, Ly, Lx):
 def pad_image_ND(img0, div=16, extra = 1):
     """ pad image for test-time so that its dimensions are a multiple of 16 (2D or 3D)
 
-    Parameters
-    -------------
+    Args:
+    img0(ND-array): image of size [nchan (x Lz) x Ly x Lx]
+    div(optional[int]):  default 16
 
-    img0: ND-array
-        image of size [nchan (x Lz) x Ly x Lx]
-
-    div: int (optional, default 16)
-
-    Returns
-    --------------
-
-    I: ND-array
-        padded image
-
-    ysub: array, int
-        yrange of pixels in I corresponding to img0
-
-    xsub: array, int
-        xrange of pixels in I corresponding to img0
+    Returns:
+    I(ND-array): padded image
+    ysub(array[int]): yrange of pixels in I corresponding to img0
+    xsub(array[int]): xrange of pixels in I corresponding to img0
 
     """
     Lpad = int(div * np.ceil(img0.shape[-2]/div) - img0.shape[-2])
@@ -338,13 +276,11 @@ def pad_image_ND(img0, div=16, extra = 1):
 def _X2zoom(img, X2=1):
     """ zoom in image
 
-    Parameters
-    ----------
-    img : numpy array that's Ly x Lx
+    Args:
+    img(array) : numpy array that's Ly x Lx
 
     Returns
-    -------
-    img : numpy array that's Ly x Lx
+    img (array): numpy array that's Ly x Lx
 
     """
     ny,nx = img.shape[:2]
@@ -354,19 +290,13 @@ def _X2zoom(img, X2=1):
 def _image_resizer(img, resize=512, to_uint8=False):
     """ resize image
 
-    Parameters
-    ----------
-    img : numpy array that's Ly x Lx
-
-    resize : int
-        max size of image returned
-
-    to_uint8 : bool
-        convert image to uint8
+    Args:
+    img(array) : numpy array that's Ly x Lx
+    resize(int) :  max size of image returned
+    to_uint8(bool) : convert image to uint8
 
     Returns
-    -------
-    img : numpy array that's Ly x Lx, Ly,Lx<resize
+    img (array) : numpy array that's Ly x Lx, Ly,Lx<resize
 
     """
     ny,nx = img.shape[:2]

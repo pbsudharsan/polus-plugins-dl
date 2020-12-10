@@ -1,6 +1,11 @@
+'''
+
+Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+
+'''
+
 from mxnet import gluon, nd
 from mxnet.gluon import nn
-import numpy as np
 
 nfeat = 128
 sz  = [3, 3, 3, 3, 3]

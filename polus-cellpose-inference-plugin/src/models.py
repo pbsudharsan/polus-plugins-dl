@@ -1,4 +1,9 @@
-import os, sys, time, shutil, tempfile, datetime, pathlib
+'''
+
+Most of the sourced  code is so from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+
+'''
+import os, sys, time,  pathlib
 import numpy as np
 from tqdm import trange, tqdm
 from urllib.parse import urlparse
@@ -15,30 +20,19 @@ logger = logging.getLogger("models")
 logger.setLevel(logging.INFO)
 
 class Cellpose():
-    """ main model which combines SizeModel and CellposeModel
+    """ main model which combines SizeModel and CellposeModel """
 
-    Parameters
-    ----------
 
-    gpu: bool (optional, default False)
-        whether or not to save model to GPU, will check if GPU available
-
-    model_type: str (optional, default 'cyto')
-        'cyto'=cytoplasm model; 'nuclei'=nucleus model
-
-    net_avg: bool (optional, default True)
-        loads the 4 built-in networks and averages them if True, loads one network if False
-
-    batch_size: int (optional, default 8)
-        number of 224x224 patches to run simultaneously on the GPU
-        (can make smaller or bigger depending on GPU memory usage)
-
-    device: mxnet device (optional, default None)
-        where model is saved (mx.gpu() or mx.cpu()), overrides gpu input,
-        recommended if you want to use a specific GPU (e.g. mx.gpu(4))
-
-    """
     def __init__(self, gpu=False, model_type='cyto', net_avg=True, batch_size=8, device=None):
+        """
+        Args:
+        gpu  (optional[bool]): Default False. Whether or not to save model to GPU, will check if GPU available
+        model_type(optional[str]) :  Default 'cyto' . 'cyto'=cytoplasm model; 'nuclei'=nucleus model
+        net_avg (optional[ bool],):  Default True. Loads the 4 built-in networks and averages them if True, loads one network if False
+        batch_size(optional[int]) : Default 8 .Number of 224x224 patches to run simultaneously on the GPU(can make smaller or bigger depending on GPU memory usage)
+        device (optional[mxnet device]) : Where model is saved (mx.gpu() or mx.cpu()), overrides gpu input,recommended if you want to use a specific GPU (e.g. mx.gpu(4))
+
+        """
         super(Cellpose, self).__init__()
         # assign device (GPU or CPU)
         if device is not None:
@@ -74,70 +68,32 @@ class Cellpose():
         self.sz = SizeModel(device=self.device, pretrained_size=self.pretrained_size,
                             cp_model=self.cp)
 
-    def eval(self, x,image_name, channels=None, diameter=30., invert=False,  anisotropy=None,
+    def eval(self, x,image_name, diameter=30., invert=False,  anisotropy=None,
              net_avg=True, augment=True, tile=True,compute_masks=True,rescale=None):
         """ run cellpose and get masks
 
-        Parameters
-        ----------
-        x: list or array of images
-            can be list of 2D/3D images, or array of 2D/3D images, or 4D image array
-
-        channels: list (optional, default None)
-            list of channels, either of length 2 or of length number of images by 2.
-            First element of list is the channel to segment (0=grayscale, 1=red, 2=blue, 3=green).
-            Second element of list is the optional nuclear channel (0=none, 1=red, 2=blue, 3=green).
-            For instance, to segment grayscale images, input [0,0]. To segment images with cells
-            in green and nuclei in blue, input [2,3]. To segment one grayscale image and one
-            image with cells in green and nuclei in blue, input [[0,0], [2,3]].
-
-        diameter: float (optional, default 30.)
-            if set to None, then diameter is automatically estimated if size model is loaded
-
-        invert: bool (optional, default False)
-            invert image pixel intensity before running network
+        Args :
+        x ( array) :  Array of 2D image.
+        diameter (optional[float]):  Default 30. If set to None, then diameter is automatically estimated if size model is loaded.
+        invert (optional[bool]) :  default False. Invert image pixel intensity before running network.
+        anisotropy (optional[float]): Default None. For 3D segmentation, optional rescaling factor (e.g. set to 2.0 if Z is sampled half as dense as X or Y).
+        net_avg (optional[bool]): Default True.Runs the 4 built-in networks and averages them if True, runs one network if False.
+        augment(optional[bool] ) :Tiles image with overlapping tiles and flips overlapped regions to augment.
+        tile (optional[bool]): Default True. Default True tiles image to ensure GPU/CPU memory usage limited (recommended).
+        flow_threshold (optional[float ]) : Default 0.4. Flow error threshold (all cells with errors below threshold are kept) (not used for 3D).
+        cellprob_threshold(optional[float]): Default 0.0. Cell probability threshold (all pixels with prob above threshold kept for masks).
+        rescale(optional[float] ): Default None. If diameter is set to None, and rescale is not None, then rescale is used instead of diameter for resizing image.
 
 
-        anisotropy: float (optional, default None)
-            for 3D segmentation, optional rescaling factor (e.g. set to 2.0 if Z is sampled half as dense as X or Y)
-
-        net_avg: bool (optional, default True)
-            runs the 4 built-in networks and averages them if True, runs one network if False
-
-        augment: bool (optional, default True)
-            tiles image with overlapping tiles and flips overlapped regions to augment
-
-        tile: bool (optional, default True)
-            tiles image to ensure GPU/CPU memory usage limited (recommended)
-
-        flow_threshold: float (optional, default 0.4)
-            flow error threshold (all cells with errors below threshold are kept) (not used for 3D)
-
-        cellprob_threshold: float (optional, default 0.0)
-            cell probability threshold (all pixels with prob above threshold kept for masks)
-
-        rescale: float (optional, default None)
-            if diameter is set to None, and rescale is not None, then rescale is used instead of diameter for resizing image
-
-
-        Returns
-        -------
-        masks: list of 2D arrays, or single 3D array (if do_3D=True)
-                labelled image, where 0=no masks; 1,2,...=mask labels
-
-        flows: list of lists 2D arrays, or list of 3D arrays (if do_3D=True)
+        Returns :
+        loc  (float32, 3D array ) :  Final locations of each pixel after dynamics
+        prob (list of arrays) :
             flows[k][0] = XY flow in HSV 0-255
             flows[k][1] = flows at each pixel
             flows[k][2] = the cell probability centered at 0.0
 
-        styles: list of 1D arrays of length 64, or single 1D array (if do_3D=True)
-            style vector summarizing each image, also used to estimate size of objects in image
-
-        diams: list of diameters, or float (if do_3D=True)
 
         """
-
-
 
         if not isinstance(x,list):
             nolist = True
@@ -146,8 +102,6 @@ class Cellpose():
             nolist = False
 
         tic0 = time.time()
-
-
         nimg = len(x)
         logger.info('processing %s image(s)'%image_name)
         # make rescale into length of x
@@ -162,7 +116,7 @@ class Cellpose():
                 rescale = rescale * np.ones(nimg, np.float32)
             if self.pretrained_size is not None and rescale is None :
                 tic = time.time()
-                diams, _ = self.sz.eval(x, channels=channels, invert=invert, batch_size=self.batch_size, augment=augment, tile=tile)
+                diams, _ = self.sz.eval(x, invert=invert, batch_size=self.batch_size, augment=augment, tile=tile)
                 rescale = self.diam_mean / diams.copy()
                 logger.info('estimated cell diameter for %s image in %0.2f sec'%(image_name, time.time()-tic))
             else:
@@ -172,49 +126,34 @@ class Cellpose():
                 diams = self.diam_mean / rescale.copy() 
 
         tic = time.time()
-
-        loc,prob= self.cp.eval(x, invert=invert, rescale=rescale, anisotropy=anisotropy,
-                                            channels=channels, augment=augment, tile=tile,
-                                            net_avg=net_avg)
+        loc,prob= self.cp.eval(x, invert=invert, rescale=rescale, anisotropy=anisotropy,augment=augment, tile=tile,net_avg=net_avg)
         logger.info('Estimated probablity of cells   for %s image in %0.2f sec'%(image_name, time.time()-tic))
         logger.info(' TOTAL TIME %0.2f sec'%(time.time()-tic0))
-        
-
         return loc,prob
 
 class CellposeModel():
-    """
 
-    Parameters
-    -------------------
-
-    gpu: bool (optional, default False)
-        whether or not to save model to GPU, will check if GPU available
-
-    pretrained_model: str or list of strings (optional, default False)
-        path to pretrained cellpose model(s), if False, no model loaded;
-        if None, built-in 'cyto' model loaded
-
-    net_avg: bool (optional, default True)
-        loads the 4 built-in networks and averages them if True, loads one network if False
-
-    batch_size: int (optional, default 8)
-        number of 224x224 patches to run simultaneously on the GPU
-        (can make smaller or bigger depending on GPU memory usage)
-
-    diam_mean: float (optional, default 27.)
-        mean 'diameter', 27. is built in value for 'cyto' model
-
-    device: mxnet device (optional, default None)
-        where model is saved (mx.gpu() or mx.cpu()), overrides gpu input,
-        recommended if you want to use a specific GPU (e.g. mx.gpu(4))
-
-    """
 
     def __init__(self, gpu=False, pretrained_model=False, batch_size=8,
                     diam_mean=30., net_avg=True, device=None, unet=False):
-        super(CellposeModel, self).__init__()
+        """
 
+         Args :
+
+         gpu(optional[bool]): Default False. Whether or not to save model to GPU, will check if GPU available
+
+         pretrained_model(optional[str]) : path to pretrained cellpose model(s), if False, no model loaded;if None, built-in 'cyto' model loaded
+
+         net_avg (optional[bool]):Default True. loads the 4 built-in networks and averages them if True, loads one network if False
+
+         batch_size:  (optional[int]): Default 8. Number of 224x224 patches to run simultaneously on the GPU (can make smaller or bigger depending on GPU memory usage)
+
+         diam_mean: float (optional, default 27.)
+             mean 'diameter', 27. is built in value for 'cyto' model
+         device (mxnet device ): Where model is saved (mx.gpu() or mx.cpu()), overrides gpu input,recommended if you want to use a specific GPU (e.g. mx.gpu(4))
+
+         """
+        super(CellposeModel, self).__init__()
         if device is not None:
             self.device = device
         elif gpu and utils.use_gpu():
@@ -241,75 +180,40 @@ class CellposeModel():
             self.net.load_parameters(pretrained_model)
 
 
-    def eval(self, x, channels=None, invert=False, rescale=None, anisotropy=None, net_avg=True, augment=True,
+    def eval(self, x, channels=[0,0], invert=False, rescale=None, anisotropy=None, net_avg=True, augment=True,
              tile=True,compute_masks=False,flow_threshold=0.4, cellprob_threshold=0.0):
         """
-            segment list of images x, or 4D array - Z x x Y x X x nchan
+            Segment images
 
-            Parameters
-            ----------
-            x: list or array of images
-                can be list of 2D/3D images, or array of 2D/3D images, or 4D image array
-
-            channels: list (optional, default None)
+           Args :
+            x ( array) : 2D image array
+            channels (optional[list]) :
                 list of channels, either of length 2 or of length number of images by 2.
                 First element of list is the channel to segment (0=grayscale, 1=red, 2=blue, 3=green).
                 Second element of list is the optional nuclear channel (0=none, 1=red, 2=blue, 3=green).
                 For instance, to segment grayscale images, input [0,0]. To segment images with cells
                 in green and nuclei in blue, input [2,3]. To segment one grayscale image and one
                 image with cells in green and nuclei in blue, input [[0,0], [2,3]].
+            invert  (optional[bool]) : Invert image pixel intensity before running network
+            rescale  (optional[float]) : Default None. Resize factor for each image, if None, set to 1.0
+            net_avg(optional[bool]): Default True.Runs the 4 built-in networks and averages them if True, runs one network if False
+            augment(optional[bool]): Default True. tiles image with overlapping tiles and flips overlapped regions to augment
+            tile (optional[bool]: Default True.Tiles image to ensure GPU/CPU memory usage limited (recommended)
+            flow_threshold(optional[float]): Default 0.4. flow error threshold (all cells with errors below threshold are kept) (not used for 3D)
+            cellprob_threshold (optional[float]): default 0.0. cell probability threshold (all pixels with prob above threshold kept for masks)
+            compute_masks (optional[bool]) : Default True.Whether or not to compute dynamics from numba import njit and return masks.This is set to False when retrieving the styles for the size model.
 
-            invert: bool (optional, default False)
-                invert image pixel intensity before running network
 
-            rescale: float (optional, default None)
-                resize factor for each image, if None, set to 1.0
-
-            do_3D: bool (optional, default False)
-                set to True to run 3D segmentation on 4D image input
-
-            anisotropy: float (optional, default None)
-                for 3D segmentation, optional rescaling factor (e.g. set to 2.0 if Z is sampled half as dense as X or Y)
-
-            net_avg: bool (optional, default True)
-                runs the 4 built-in networks and averages them if True, runs one network if False
-
-            augment: bool (optional, default True)
-                tiles image with overlapping tiles and flips overlapped regions to augment
-
-            tile: bool (optional, default True)
-                tiles image to ensure GPU/CPU memory usage limited (recommended)
-
-            flow_threshold: float (optional, default 0.4)
-                flow error threshold (all cells with errors below threshold are kept) (not used for 3D)
-
-            cellprob_threshold: float (optional, default 0.0)
-                cell probability threshold (all pixels with prob above threshold kept for masks)
-
-            compute_masks: bool (optional, default True)
-                Whether or not to compute dynamics afrom numba import njit
-nd return masks.
-                This is set to False when retrieving the styles for the size model.
-
-            progress: pyqt progress bar (optional, default None)
-                to return progress bar status to GUI
-
-            Returns
-            -------
-            masks: list of 2D arrays, or single 3D array (if do_3D=True)
-                labelled image, where 0=no masks; 1,2,...=mask labels
-
-            flows: list of lists 2D arrays, or list of 3D arrays (if do_3D=True)
+            Returns :
+            masks(array) : labelled image, where 0=no masks; 1,2,...=mask labels
+            flows(array):
                 flows[k][0] = XY flow in HSV 0-255
                 flows[k][1] = flows at each pixel
                 flows[k][2] = the cell probability centered at 0.0
-
-            styles: list of 1D arrays of length 64, or single 1D array (if do_3D=True)
-                style vector summarizing each image, also used to estimate size of objects in image
+            styles(1D array): style vector summarizing each image, also used to estimate size of objects in image
 
         """
         nimg = len(x)
-
         if channels is not None:
             if len(channels)==2:
 
@@ -346,14 +250,12 @@ nd return masks.
                 img = np.concatenate((img, 0.*img), axis=-1)
 
             if isinstance(self.pretrained_model, str) or not net_avg:
-
                 y, style = self._run_net(img, rsz=rescale[i], augment=augment, tile=tile)
             else:
                 y, style = self._run_many(img, rsz=rescale[i], augment=augment, tile=tile)
 
             styles.append(style)
             if not compute_masks:
-
                 dP = np.stack((y[...,0], y[...,1]), axis=0)
                 niter = 1 / rescale[i] * 200
                 p = dynamics.follow_flows(-1 * dP  / 5. , niter=niter)
@@ -366,7 +268,6 @@ nd return masks.
 
                 maski = dynamics.get_masks(p, iscell=(cellprob > cellprob_threshold),
                                            flows=dP, threshold=flow_threshold)
-
                 maski = dynamics.fill_holes(maski)
                 masks.append(maski)
                 return  masks,styles
@@ -375,37 +276,21 @@ nd return masks.
     def _run_many(self, img, rsz=1.0, augment=True, tile=True):
         """ loop over networks in pretrained_model and average results
 
-        Parameters
-        --------------
+        Args :
+        img (float): [Ly x Lx x nchan] or [Lz x Ly x Lx x nchan]
+        rsz(optional[ float ]): Default 1.0. resize coefficient for image
+        augment (optional[bool]): default True .tiles image with overlapping tiles and flips overlapped regions to augment
+        tile (optional[bool]):default True.tiles image to ensure GPU memory usage limited (recommended)
 
-        img: float, [Ly x Lx x nchan] or [Lz x Ly x Lx x nchan]
 
-        rsz: float (optional, default 1.0)
-            resize coefficient for image
+        Returns:
 
-        augment: bool (optional, default True)
-            tiles image with overlapping tiles and flips overlapped regions to augment
-
-        tile: bool (optional, default True)
-            tiles image to ensure GPU memory usage limited (recommended)
-
-        progress: pyqt progress bar (optional, default None)
-                to return progress bar status to GUI
-
-        Returns
-        ------------------
-
-        yup: array [3 x Ly x Lx]
-            yup is output averaged over networks;
-            yup[0] is Y flow; yup[1] is X flow; yup[2] is cell probability
-
-        style: array [64]
-            1D array summarizing the style of the image,
-            if tiled it is averaged over tiles,
-            but not averaged over networks.
+        yup(array):  [3 x Ly x Lx].yup is output averaged over networks;yup[0] is Y flow; yup[1] is X flow; yup[2] is cell probability
+        style(array):  [64] 1D array summarizing the style of the image,if tiled it is averaged over tiles,but not averaged over networks.
 
         """
         for j in range(len(self.pretrained_model)):
+
             self.net.load_parameters(self.pretrained_model[j])
             self.net.collect_params().grad_req = 'null'
             yup0, style = self._run_net(img, rsz=rsz, augment=augment, tile=tile)
@@ -423,33 +308,16 @@ nd return masks.
 
         (faster if augment is False)
 
-        Parameters
-        --------------
+        Args:
+        imgs(array):  [Ly x Lx x nchan]
+        rsz(optional[float]): default 1.0 .resize coefficient(s) for image
+        augment(optional[bool]): default True.tiles image with overlapping tiles and flips overlapped regions to augment
+        tile(optional[bool]): default True .tiles image to ensure GPU/CPU memory usage limited (recommended);cannot be turned off for 3D segmentation
+        bsize (optional[int]): default 224 . Size of tiles to use in pixels [bsize x bsize]
 
-        imgs: array [Ly x Lx x nchan] or [Lz x Ly x Lx x nchan]
-
-        rsz: float (optional, default 1.0)
-            resize coefficient(s) for image
-
-        augment: bool (optional, default True)
-            tiles image with overlapping tiles and flips overlapped regions to augment
-
-        tile: bool (optional, default True)
-            tiles image to ensure GPU/CPU memory usage limited (recommended);
-            cannot be turned off for 3D segmentation
-
-        bsize: int (optional, default 224)
-            size of tiles to use in pixels [bsize x bsize]
-
-        Returns
-        ------------------
-
-        y: array [Ly x Lx x 3] or [Lz x Ly x Lx x 3]
-            y[...,0] is Y flow; y[...,1] is X flow; y[...,2] is cell probability
-
-        style: array [64]
-            1D array summarizing the style of the image,
-            if tiled it is averaged over tiles
+        Returns :
+        y(array): [Ly x Lx x 3] y[...,0] is Y flow; y[...,1] is X flow; y[...,2] is cell probability
+        style(array):  [64] 1D array summarizing the style of the image,if tiled it is averaged over tiles
 
         """   
         shape = imgs.shape
@@ -460,6 +328,7 @@ nd return masks.
             resize=True
             Ly = int(imgs.shape[-3] * rsz[0])
             Lx = int(imgs.shape[-2] * rsz[1])
+
             imgs = transforms.resize_image(imgs, Ly, Lx)
         else:
             resize=False
@@ -515,26 +384,14 @@ nd return masks.
             * flipped vertically and horizontally
         The average of the network output over tiles is returned.
 
-        Parameters
-        --------------
-
-        imgi: array [nchan x Ly x Lx] or [Lz x nchan x Ly x Lx]
-
-        augment: bool (optional, default True)
-            tiles image with overlapping tiles and flips overlapped regions to augment
-
-        bsize: int (optional, default 224)
-            size of tiles to use in pixels [bsize x bsize]
+        Args:
+        imgi(array):  [nchan x Ly x Lx]
+        augment(optional[bool]): default True.tiles image with overlapping tiles and flips overlapped regions to augment
+        bsize (optional[int]): default 224. size of tiles to use in pixels [bsize x bsize]
 
         Returns
-        ------------------
-
-        yf: array [3 x Ly x Lx] or [Lz x 3 x Ly x Lx]
-            yf is averaged over tiles
-            yf[0] is Y flow; yf[1] is X flow; yf[2] is cell probability
-
-        styles: array [64]
-            1D array summarizing the style of the image, averaged over tiles
+        yf(array):  [3 x Ly x Lx] or [Lz x 3 x Ly x Lx] yf is averaged over tiles. yf[0] is Y flow; yf[1] is X flow; yf[2] is cell probability
+        styles(array[64]): 1D array summarizing the style of the image, averaged over tiles
 
         """
 
@@ -606,24 +463,19 @@ nd return masks.
 
 
 class SizeModel():
-    """ linear regression model for determining the size of objects in image
-        used to rescale before input to CellposeModel
-        uses styles from CellposeModel
+    """
+    linear regression model for determining the size of objects in image used to rescale before input to Cellpose Model
+        uses styles from Cellpose Model
 
-        Parameters
-        -------------------
-
-        cp_model: CellposeModel
-            cellpose model from which to get styles
-
-        device: mxnet device (optional, default mx.cpu())
-            where cellpose model is saved (mx.gpu() or mx.cpu())
-
-        pretrained_size: str
-            path to pretrained size model
 
     """
     def __init__(self, cp_model, device=mx.cpu(), pretrained_size=None, **kwargs):
+        """
+        Args:
+        cp_model(CellposeModel): cellpose model from which to get styles
+        device(optional[mxnet device]): default mx.cpu().where cellpose model is saved (mx.gpu() or mx.cpu())
+        pretrained_size(str): path to pretrained size model
+        """
         super(SizeModel, self).__init__(**kwargs)
 
         self.device = device
@@ -643,15 +495,10 @@ class SizeModel():
         2. resize image to predicted size and run CellposeModel to get output masks.
             Take the median object size of the predicted masks as the final predicted size.
 
-        Parameters
-        -------------------
-
-        cp_model: CellposeModel
-            cellpose model from which to get styles
-        device: mxnet device (optional, default mx.cpu())
-            where cellpose model is saved (mx.gpu() or mx.cpu())
-        pretrained_size: str
-            path to pretrained size model
+        Args:
+        cp_model(CellposeModel): cellpose model from which to get styles
+        device(optional[mxnet device]): default mx.cpu().Where cellpose model is saved (mx.gpu() or mx.cpu())
+        pretrained_size(str): path to pretrained size model
 
         """
         if style is None and x is None:
