@@ -1,7 +1,12 @@
-import os, warnings, time, tempfile, datetime, pathlib, shutil
+'''
+
+Most of the sourced  code is so from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+
+'''
+import os, tempfile, shutil
 from tqdm import tqdm
 from urllib.request import urlopen
-from urllib.parse import urlparse
+
 
 import numpy as np
 import mxnet as mx
@@ -17,14 +22,13 @@ def use_gpu(gpu_number=0):
         print('CUDA version not installed/working, will use CPU version.')
         return False
 
-def download_url_to_file(url, dst, progress=True):
-    r"""Download object at the given URL to a local path.
+def download_url_to_file(url, dst):
+    """Download object at the given URL to a local path.
             Thanks to torch, slightly modified
     Args:
         url (string): URL of the object to download
         dst (string): Full path where object will be saved, e.g. `/tmp/temporary_file`
-        progress (bool, optional): whether or not to display a progress bar to stderr
-            Default: True
+
     """
     file_size = None
     u = urlopen(url)
@@ -56,7 +60,7 @@ def download_url_to_file(url, dst, progress=True):
             os.remove(f.name)
 
 
-#there
+
 def diameters(masks):
     """ get median 'diameter' of masks """
     _, counts = np.unique(np.int32(masks), return_counts=True)
