@@ -75,11 +75,13 @@ if __name__=="__main__":
                 raise FileExistsError()
 
             root = zarr.group(store=str(Path(outDir).joinpath('location.zarr')))
-
+            print('test')
             for f in inpDir_files:
+
                 # Loop through files in inpDir image collection and process
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
                 image = np.squeeze(br.read())
+                print(image.shape)
                 # Serially iterating   z stack images
                 if len(image.shape) >= 3:
                     if len(image.shape) == 4:

@@ -1,6 +1,6 @@
 {
     "name": "Cellpose-inference ",
-    "version": "0.1.9",
+    "version": "0.2.0",
     "title": "Cellpose-inference  ",
     "description": "Semantic segmentation of cell/nuclei",
     "author": "Sudharsan (sudharsan.prativadi@labshare.org)",
@@ -8,7 +8,7 @@
     "repository": "https://github.com/labshare/polus-plugins",
     "website": "https://ncats.nih.gov/preclinical/core/informatics",
     "citation": "Cellpose a generalist, deep learning-based segmentation algorithm which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments, https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1",
-    "containerId": "labshare/polus-cellpose-inference-plugin:0.1.9",
+    "containerId": "labshare/polus-cellpose-inference-plugin:0.2.0",
     "inputs": [
       {
         "name": "diameter",
@@ -24,22 +24,22 @@
       },
       {
         "name": "pretrained_model",
-        "type": "string",
+        "type": "enum",
         "description": "Choose cell/nuclei to segment",
+        "options": {
+	      "values": [
+	      		"cyto",
+			 "nuclei",
+            "custom"
+             ]
+          },
         "required": true
       },
-      {
-        "name": "chan",
-        "type": "integer",
-        "description": "Channel to segment( 1:Red ,2:  Green ,3 :blue) Ignore for greyscaale images ",
-        "required": false
-      },
-      {
-        "name": "chan2",
-        "type": "integer",
-        "description": "2nd channel to segment 1:Red ,2:  Green ,3 :blue) Ignore for greyscaale images",
-        "required": false
-      }
+      {"name":"custom_model" ,
+              "type": "tensorflowModel",
+              "description":"Select the custom pretrained model for segmentation ",
+              "required": true
+            }
     ],
     "outputs": [
       {
@@ -66,14 +66,10 @@
         "description": " Object that needs to be segmented "
       },
       {
-        "key": "inputs.chan",
-        "title": "Channel to segment",
-        "description": "Channel that needs to be segmented"
-      },
-      {
-        "key": "inputs.chan2",
-        "title": "2nd Channel to segment",
-        "description": "2nd channel "
+        "key": "inputs.custom_model",
+        "title": "Pretrained Modle of choice",
+        "description": " Path to pretrained Model to run the images",
+        "condition": "model.inputs.pretrained_model=='custom'"
       }
     ]
   }
