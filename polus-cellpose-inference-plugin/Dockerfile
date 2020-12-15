@@ -1,4 +1,3 @@
-
 FROM   labshare/polus-bfio-util:2.0.2-tensorflow
 
 COPY VERSION /
@@ -13,7 +12,7 @@ RUN mkdir -p ${EXEC_DIR} \
 COPY src ${EXEC_DIR}/
 WORKDIR ${EXEC_DIR}
 
-RUN pip3 uninstall -y  tensorflow-gpu
+RUN pip3 uninstall -y  tensorflow-gpu tensorboard
 
 RUN apt-get update
 
@@ -21,8 +20,9 @@ RUN apt-get -y install   libaec-dev libblosc-dev libbrotli-dev libbz2-dev libgif
 
 RUN apt-get -y install libgomp1 gfortran libglib2.0.0 libgles2-mesa-dev
 
-RUN pip3 install -r ${EXEC_DIR}/requirements-gpu.txt --no-cache-dir
+RUN  pip3 install -r ${EXEC_DIR}/requirements.txt --no-cache-dir
 
-#ENTRYPOINT ["python3", "main.py"]
+
+ENTRYPOINT ["python3", "main.py"]
 
 

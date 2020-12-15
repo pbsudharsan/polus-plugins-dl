@@ -75,13 +75,10 @@ if __name__=="__main__":
                 raise FileExistsError()
 
             root = zarr.group(store=str(Path(outDir).joinpath('location.zarr')))
-            print('test')
             for f in inpDir_files:
-
                 # Loop through files in inpDir image collection and process
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
                 image = np.squeeze(br.read())
-                print(image.shape)
                 # Serially iterating   z stack images
                 if len(image.shape) >= 3:
                     if len(image.shape) == 4:
@@ -95,7 +92,6 @@ if __name__=="__main__":
 
                     prob = np.asarray(prob_final)
                     location = np.asarray(location_final)
-
                # Segmenting  Greyscale images
                 elif len(image.shape) == 2:
                     location, prob = model.eval(image, diameter=diameter,image_name=f,rescale=rescale)
