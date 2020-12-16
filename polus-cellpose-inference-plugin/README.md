@@ -21,6 +21,7 @@ This plugin takes one input argument and one output argument:
 |---------------|-------------------------|--------|--------|
 | `--diameter` | Diameter | Input | number |
 | `--inpDir` | Input image collection to be processed by this plugin | Input | collection |
-| `--pretrained_model` | Filename pattern used to separate data | Input | string |
-| `--outDir` | Output collection | Output | collection |
+| `--pretrained_model` | Select the model based on structure you want to segment cyto/nuclei | Input | string |
+| `--cpretrained_model` | Path to custom pretrained model | Input | string |
+| `--outDir` | Output collection | Output | Generic Data type |
 

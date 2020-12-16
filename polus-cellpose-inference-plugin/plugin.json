@@ -1,6 +1,6 @@
 {
     "name": "Cellpose-inference ",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "title": "Cellpose-inference  ",
     "description": "Semantic segmentation of cell/nuclei",
     "author": "Sudharsan (sudharsan.prativadi@labshare.org)",
@@ -8,7 +8,7 @@
     "repository": "https://github.com/labshare/polus-plugins",
     "website": "https://ncats.nih.gov/preclinical/core/informatics",
     "citation": "Cellpose a generalist, deep learning-based segmentation algorithm which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments, https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1",
-    "containerId": "labshare/polus-cellpose-inference-plugin:0.2.0",
+    "containerId": "labshare/polus-cellpose-inference-plugin:0.2.1",
     "inputs": [
       {
         "name": "diameter",
@@ -35,7 +35,7 @@
           },
         "required": true
       },
-      {"name":"custom_model" ,
+      {"name":"cpretrained_model" ,
               "type": "tensorflowModel",
               "description":"Select the custom pretrained model for segmentation ",
               "required": true
@@ -66,8 +66,8 @@
         "description": " Object that needs to be segmented "
       },
       {
-        "key": "inputs.custom_model",
-        "title": "Pretrained Modle of choice",
+        "key": "inputs.cpretrained_model",
+        "title": "Pretrained Model of choice",
         "description": " Path to pretrained Model to run the images",
         "condition": "model.inputs.pretrained_model=='custom'"
       }
