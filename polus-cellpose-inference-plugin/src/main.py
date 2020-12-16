@@ -21,8 +21,9 @@ if __name__=="__main__":
     parser.add_argument('--inpDir', dest='inpDir', type=str,
                         help='Input image collection to be processed by this plugin', required=True)
     parser.add_argument('--pretrained_model', dest='pretrained_model', type=str,
-                        help='Filename pattern used to separate data', required=False)
-
+                        help='Select the model based on structure you want to segment cyto/nuclei', required=False)
+    parser.add_argument('--cpretrained_model', dest='cpretrained_model', type=str,
+                        help='Path to custom pretrained model ', required=False)
     # Output arguments
     parser.add_argument('--outDir', dest='outDir', type=str,
                         help='Output collection', required=True)
@@ -36,6 +37,7 @@ if __name__=="__main__":
     logger.info('inpDir = {}'.format(inpDir))
     pretrained_model = args.pretrained_model
     logger.info('pretrained_model = {}'.format(pretrained_model))
+    cpretrained_model= args.cpretrained_model
     outDir = args.outDir
     logger.info('outDir = {}'.format(outDir))
     use_gpu = utils.use_gpu()
@@ -52,16 +54,15 @@ if __name__=="__main__":
         inpDir_files = [f.name for f in Path(inpDir).iterdir() if f.is_file() and "".join(f.suffixes) == '.ome.tif']
         rescale = None
         if args.diameter == 0:
-
             diameter = None
             logger.info('Estimating diameter for each image')
         else:
             diameter = args.diameter
             logger.info(' Using diameter %0.2f for all images' % diameter)
-
-        if not pretrained_model:
-            logger.info('Running the images on Cyto model')
-            pretrained_model = 'cyto'
+        # Checking for custom models
+        if cpretrained_model:
+            pretrained_model= cpretrained_model
+            logger.info('Running model in path %s' % cpretrained_model)
         if pretrained_model is 'cyto' or 'nuclei':
             model = models.Cellpose(device=device, model_type=pretrained_model)
         elif Path(pretrained_model).exists():
@@ -86,7 +87,7 @@ if __name__=="__main__":
                     prob_final = []
                     location_final = []
                     for i in range(image.shape[-1]):
-                        location, prob = model.eval(image[:, :, i], diameter=diameter, image_name=f,rescale=rescale)
+                        location, prob = model.eval(image[:, :, i], diameter=diameter,rescale=rescale)
                         prob_final.append(prob.tolist())
                         location_final.append(location.tolist())
 
@@ -94,7 +95,7 @@ if __name__=="__main__":
                     location = np.asarray(location_final)
                # Segmenting  Greyscale images
                 elif len(image.shape) == 2:
-                    location, prob = model.eval(image, diameter=diameter,image_name=f,rescale=rescale)
+                    location, prob = model.eval(image, diameter=diameter,rescale=rescale)
 
               # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)

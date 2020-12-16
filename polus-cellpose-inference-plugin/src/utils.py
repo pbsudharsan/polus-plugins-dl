@@ -6,20 +6,24 @@ Most of the sourced  code is so from Cellpose repo  https://github.com/MouseLand
 import os, tempfile, shutil
 from tqdm import tqdm
 from urllib.request import urlopen
-
-
 import numpy as np
 import mxnet as mx
+import logging
+
+logging.basicConfig(format='%(asctime)s - %(name)-8s - %(levelname)-8s - %(message)s',
+                        datefmt='%d-%b-%y %H:%M:%S')
+logger = logging.getLogger("utils")
+logger.setLevel(logging.INFO)
 
 
 def use_gpu(gpu_number=0):
     """ check if mxnet gpu works """
     try:
         _ = mx.ndarray.array([1, 2, 3], ctx=mx.gpu(gpu_number))
-        print('CUDA version installed and working.')
+        logger.info('CUDA version installed and working.')
         return True
     except mx.MXNetError:
-        print('CUDA version not installed/working, will use CPU version.')
+        logger.info('CUDA version not installed/working, will use CPU version.')
         return False
 
 def download_url_to_file(url, dst):

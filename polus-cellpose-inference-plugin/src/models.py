@@ -23,7 +23,7 @@ class Cellpose():
     """ main model which combines SizeModel and CellposeModel """
 
 
-    def __init__(self, gpu=False, model_type='cyto', net_avg=True, batch_size=8, device=None):
+    def __init__(self, model_type='cyto', net_avg=True, batch_size=8, device=None):
         """
         Args:
         gpu  (optional[bool]): Default False. Whether or not to save model to GPU, will check if GPU available
@@ -34,15 +34,7 @@ class Cellpose():
 
         """
         super(Cellpose, self).__init__()
-        # assign device (GPU or CPU)
-        if device is not None:
-            self.device = device
-        elif gpu and utils.use_gpu():
-            self.device = mx.gpu()
-            logger.info(' using GPU')
-        else:
-            self.device = mx.cpu()
-            logger.info(' using CPU')
+        self.device = device
 
         self.batch_size=batch_size
         model_dir = pathlib.Path.home().joinpath('.cellpose', 'models')
@@ -68,7 +60,7 @@ class Cellpose():
         self.sz = SizeModel(device=self.device, pretrained_size=self.pretrained_size,
                             cp_model=self.cp)
 
-    def eval(self, x,image_name, diameter=30., invert=False,  anisotropy=None,
+    def eval(self, x, diameter=30., invert=False,  anisotropy=None,
              net_avg=True, augment=True, tile=True,compute_masks=True,rescale=None):
         """ run cellpose and get masks
 
@@ -103,7 +95,7 @@ class Cellpose():
 
         tic0 = time.time()
         nimg = len(x)
-        logger.info('processing %s image(s)'%image_name)
+        logger.info('processing image')
         # make rescale into length of x
         if diameter is not None and diameter!=0:
             if not isinstance(diameter, list) or len(diameter)==1 or len(diameter)<nimg:
@@ -118,7 +110,7 @@ class Cellpose():
                 tic = time.time()
                 diams, _ = self.sz.eval(x, invert=invert, batch_size=self.batch_size, augment=augment, tile=tile)
                 rescale = self.diam_mean / diams.copy()
-                logger.info('estimated cell diameter for %s image in %0.2f sec'%(image_name, time.time()-tic))
+                logger.info('estimated cell diameter  in %0.2f sec'%(time.time()-tic))
             else:
                 if rescale is None:
 
@@ -127,44 +119,30 @@ class Cellpose():
 
         tic = time.time()
         loc,prob= self.cp.eval(x, invert=invert, rescale=rescale, anisotropy=anisotropy,augment=augment, tile=tile,net_avg=net_avg)
-        logger.info('Estimated probablity of cells   for %s image in %0.2f sec'%(image_name, time.time()-tic))
+        logger.info('Estimated probablity of cells   in %0.2f sec'%( time.time()-tic))
         logger.info(' TOTAL TIME %0.2f sec'%(time.time()-tic0))
         return loc,prob
 
 class CellposeModel():
 
 
-    def __init__(self, gpu=False, pretrained_model=False, batch_size=8,
-                    diam_mean=30., net_avg=True, device=None, unet=False):
+    def __init__(self, pretrained_model=False, batch_size=8,
+                    diam_mean=30., device=None):
         """
 
          Args :
-
          gpu(optional[bool]): Default False. Whether or not to save model to GPU, will check if GPU available
-
          pretrained_model(optional[str]) : path to pretrained cellpose model(s), if False, no model loaded;if None, built-in 'cyto' model loaded
-
          net_avg (optional[bool]):Default True. loads the 4 built-in networks and averages them if True, loads one network if False
-
          batch_size:  (optional[int]): Default 8. Number of 224x224 patches to run simultaneously on the GPU (can make smaller or bigger depending on GPU memory usage)
-
          diam_mean: float (optional, default 27.)
              mean 'diameter', 27. is built in value for 'cyto' model
          device (mxnet device ): Where model is saved (mx.gpu() or mx.cpu()), overrides gpu input,recommended if you want to use a specific GPU (e.g. mx.gpu(4))
 
          """
         super(CellposeModel, self).__init__()
-        if device is not None:
-            self.device = device
-        elif gpu and utils.use_gpu():
-            self.device = mx.gpu()
-            logger.info(' using GPU')
-        else:
-            self.device = mx.cpu()
-            logger.info(' using CPU')
-
+        self.device = device
         nout = 3
-
         self.pretrained_model = pretrained_model
         self.batch_size=batch_size
         self.diam_mean = diam_mean
@@ -180,7 +158,7 @@ class CellposeModel():
             self.net.load_parameters(pretrained_model)
 
 
-    def eval(self, x, channels=[0,0], invert=False, rescale=None, anisotropy=None, net_avg=True, augment=True,
+    def eval(self, x, channels=[0,0], invert=False, rescale=None,  net_avg=True, augment=True,
              tile=True,compute_masks=False,flow_threshold=0.4, cellprob_threshold=0.0):
         """
             Segment images
