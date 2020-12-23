@@ -3,14 +3,13 @@ import numpy as np
 from tqdm import trange, tqdm
 from urllib.parse import urlparse
 import tempfile
-
 from scipy.ndimage import median_filter
 import cv2
 
 from mxnet import gluon, nd
 import mxnet as mx
 
-from . import transforms, dynamics, utils, resnet_style,metrics
+import transforms, dynamics, utils, resnet_style,metrics
 
 
 
@@ -332,6 +331,7 @@ class UnetModel():
         # create network
         self.nclasses = nclasses
         nbase = [32, 64, 128, 256]
+        print(residual_on)
         self.net = resnet_style.CPnet(nbase, nout=self.nclasses,
                                       residual_on=residual_on,
                                       style_on=style_on,
@@ -784,7 +784,7 @@ class UnetModel():
                 progress.setValue(25 + 15 * p)
         return yf, style
 
-    def loss_fn(self, lbl, y):
+    def     loss_fn(self, lbl, y):
         """ loss function between true labels lbl and prediction y """
         criterion = gluon.loss.SoftmaxCrossEntropyLoss(axis=1)
         # if available set boundary pixels to 2
@@ -805,7 +805,7 @@ class UnetModel():
         """ train function uses 0-1 mask label and boundary pixels for training """
 
         nimg = len(train_data)
-
+        print('test')
         train_data, train_labels, test_data, test_labels, run_test = transforms.reshape_train_test(train_data,
                                                                                                    train_labels,
                                                                                                    test_data,
@@ -834,7 +834,7 @@ class UnetModel():
         val_classes = train_classes[::8]
         val_labels = train_labels[::8]
         del train_data[::8], train_classes[::8], train_labels[::8]
-
+        print('test')
         model_path = self._train_net(train_data, train_classes,
                                      test_data, test_classes,
                                      pretrained_model, save_path, save_every,
@@ -883,7 +883,7 @@ class UnetModel():
 
     def _train_net(self, train_data, train_labels,
                    test_data=None, test_labels=None,
-                   pretrained_model=None, save_path=None, save_every=100,
+                   pretrained_model=None, save_path=1, save_every=100,
                    learning_rate=0.2, n_epochs=500, weight_decay=0.00001,
                    batch_size=8, rescale=True, netstr='cellpose'):
         """ train function uses loss function self.loss_fn """
@@ -961,20 +961,22 @@ class UnetModel():
                     # lbl[:,1] *= scale[0]**2
                     lbl[:, 1] /= diam_batch[:, np.newaxis, np.newaxis] ** 2
                 X = nd.array(imgi, ctx=self.device)
-                with mx.autograd.record():
-                    y, style = self.net(X)
-                    loss = self.loss_fn(lbl, y)
+                # with mx.autograd.record():
+                #     y, style = self.net(X)
+                #     loss = self.loss_fn(lbl, y)
 
                 loss.backward()
                 train_loss = nd.sum(loss).asscalar()
                 lavg += train_loss
                 nsum += len(loss)
+                print('working sdfsd')
                 if iepoch > 0:
                     trainer.step(batch_size)
+            print('working sdfsd')
             if iepoch > self.n_epochs - 100 and iepoch % 10 == 1:
                 LR = LR / 2
                 trainer.set_learning_rate(LR)
-
+            print('working sdfsd')
             if iepoch % 10 == 0 or iepoch < 10:
                 lavg = lavg / nsum
                 if test_data is not None:
@@ -1005,7 +1007,7 @@ class UnetModel():
                           (iepoch, time.time() - tic, lavg, LR))
                 lavg, nsum = 0, 0
 
-            if save_path is not None:
+            if save_path is 1:
                 if iepoch == self.n_epochs - 1 or iepoch % save_every == 1:
                     # save model at the end
                     file = '{}_{}_{}'.format(self.net_type, file_label, d.strftime("%Y_%m_%d_%H_%M_%S.%f"))
@@ -1352,16 +1354,17 @@ class CellposeModel(UnetModel):
                                                                                                    channels, normalize)
 
         # check if train_labels have flows
-        train_flows = dynamics.labels_to_flows(train_labels, files=train_files)
-        if run_test:
-            test_flows = dynamics.labels_to_flows(test_labels, files=test_files)
-        else:
-            test_flows = None
+       # train_flows = dynamics.labels_to_flows(train_labels, files=train_files)
+     #   if run_test:
+      #      test_flows = dynamics.labels_to_flows(test_labels, files=test_files)
+      #  else:
+     #       test_flows = None
 
-        model_path = self._train_net(train_data, train_flows,
-                                     test_data, test_flows,
+        model_path = self._train_net(train_data,train_labels,
+                                     test_data, test_labels,
                                      pretrained_model, save_path, save_every,
                                      learning_rate, n_epochs, weight_decay, batch_size, rescale)
+        print('sfsfsdfsdsss')
         return model_path
 
 

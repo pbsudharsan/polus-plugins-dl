@@ -1,5 +1,5 @@
 import numpy as np
-from . import utils, dynamics
+import utils, dynamics
 from numba import jit
 from scipy.optimize import linear_sum_assignment
 from scipy.ndimage import convolve

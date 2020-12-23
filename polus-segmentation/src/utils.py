@@ -9,7 +9,7 @@ from scipy.spatial import ConvexHull
 import numpy as np
 import colorsys
 
-from . import metrics
+import metrics
 
 
 def rgb_to_hsv(arr):

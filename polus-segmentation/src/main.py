@@ -1,6 +1,6 @@
 from  bfio import  BioReader
 
-import argparse, logging, sys
+import argparse, logging, sys,random
 import numpy as np
 from pathlib import Path
 import os
@@ -8,12 +8,11 @@ import zarr
 import mxnet as mx
 import models,utils
 
-def read (inpDir,flow_path):
+def read (inpDir,flow_path,image_names):
     flow_list=[]
     image_all=[]
     root = zarr.open(str(Path(flow_path).joinpath('flow.zarr')), mode='r')
-    inpDir_files = [f.name for f in Path(inpDir).iterdir() if f.is_file() and "".join(f.suffixes) == '.ome.tif']
-    for f in inpDir_files:
+    for f in image_names:
         br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
         if f not in root.keys():
             print('%s not present in zarr file',f)
@@ -42,6 +41,8 @@ if __name__=="__main__":
                         help='Input image collection to be processed by this plugin', required=True)
     parser.add_argument('--pretrained_model', dest='pretrained_model', type=str,
                         help='Filename pattern used to separate data', required=False)
+    parser.add_argument('--cpmodel_path', dest='cpmodel_path', type=str,
+                        help='Filename pattern used to separate data', required=False)
     parser.add_argument('--flow_path',help='Flow path should be a zarr file', type=str, required=True)
     parser.add_argument('--train_size', action='store_true', help='train size network at end of training')
     parser.add_argument('--test_dir', required=False,
@@ -59,6 +60,8 @@ if __name__=="__main__":
     parser.add_argument('--concatenation', required=False,
                         default=0, type=int,
                         help='concatenate downsampled layers with upsampled layers (off by default which means they are added)')
+    parser.add_argument('--train_fraction', required=False,
+                        default=0.8, type=float, help='test train split')
     # Output arguments
     parser.add_argument('--outDir', dest='outDir', type=str,
                         help='Output collection', required=True)
@@ -75,21 +78,29 @@ if __name__=="__main__":
     outDir = args.outDir
     logger.info('outDir = {}'.format(outDir))
     flow_path=args.flow_path
-    cpmodel_path= args.pretrained_model
-    if args.use_gpu:
-        use_gpu = models.use_gpu()
+    cpmodel_path= args.cpmodel_path
+    train_fraction=args.train_fraction
+    use_gpu = models.use_gpu()
     if use_gpu:
         device = mx.gpu()
     else:
         device = mx.cpu()
     logger.info('Using %s'%(['CPU', 'GPU'][use_gpu]))
+    model_dir = Path.home().joinpath('.cellpose', 'models')
 
-    cpmodel_path = os.fspath(args.pretrained_model)
-    szmean = 30
 
-    if not Path(cpmodel_path).exists():
-        if not args.train:
-            raise ValueError('ERROR: model path missing or incorrect - cannot train size model')
+    if pretrained_model == 'cyto' or pretrained_model == 'nuclei':
+        cpmodel_path = os.fspath(model_dir.joinpath('%s_0' % (args.pretrained_model)))
+        if args.pretrained_model == 'cyto':
+            szmean = 30.
+        else:
+            szmean = 17.
+    else:
+        #cpmodel_path = os.fspath(cpmodel_path)
+        szmean = 30
+
+    if cpmodel_path and not  Path(cpmodel_path).exists():
+        raise ValueError('ERROR: model path missing or incorrect - cannot train size model')
         cpmodel_path = False
         print('>>>> training from scratch')
         if args.diameter == 0:
@@ -97,27 +108,17 @@ if __name__=="__main__":
             print('>>>> median diameter set to 0 => no rescaling during training')
         else:
             rescale = True
-            szmean = args.diameter
+            szmean = diameter
     else:
         rescale = True
-        args.diameter = szmean
+        diameter = szmean
         print('>>>> pretrained model %s is being used' % cpmodel_path)
         args.residual_on = 1
         args.style_on = 1
         args.concatenation = 0
-    if rescale and args.train:
-        print('>>>> during training rescaling images to fixed diameter of %0.1f pixels' % args.diameter)
-
-
 
     if args.unet:
-        model = models.UnetModel(device=device,
-                                 pretrained_model=cpmodel_path,
-                                 diam_mean=szmean,
-                                 residual_on=args.residual_on,
-                                 style_on=args.style_on,
-                                 concatenation=args.concatenation,
-                                 nclasses=args.nclasses)
+        model = models.UnetModel(device=device,pretrained_model=cpmodel_path,diam_mean=szmean,residual_on=args.residual_on,style_on=args.style_on,concatenation=args.concatenation,nclasses=args.nclasses)
     else :
 
         model = models.CellposeModel(device=device,pretrained_model=cpmodel_path,diam_mean=szmean,residual_on=args.residual_on,style_on=args.style_on,concatenation=args.concatenation)
@@ -125,33 +126,41 @@ if __name__=="__main__":
     try:
         # Start the javabridge with proper java logging
         logger.info('Initializing ...')
-        log_config = Path(__file__).parent.joinpath("log4j.properties")
 
         # Get all file names in inpDir image collection
-
-        channels = [args.chan, args.chan2]
+       # channels = [args.chan, args.chan2]
+        channels =[0,0]
         cstr0 = ['GRAY', 'RED', 'GREEN', 'BLUE']
         cstr1 = ['NONE', 'RED', 'GREEN', 'BLUE']
-        logger.info('running cellpose on %d images using chan_to_seg %s and chan (opt) %s' %(len(inpDir_files), cstr0[channels[0]], cstr1[channels[1]]))
+        image_names = [f.name for f in Path(inpDir).iterdir() if f.is_file()  ]
+        random.shuffle(image_names)
+        idx = int(train_fraction * len(image_names))
+        train_img_names = image_names[0:idx]
+        test_img_names = image_names[idx:]
+        logger.info('running cellpose on %d images ' %(len(image_names)))
         diameter = args.diameter
         logger.info(' Using diameter %0.2f for all images' % diameter)
 
 
         try:
-            if not Path(inpDir).joinpath('flow.zarr').exists():
+            if not Path(flow_path).joinpath('flow.zarr').exists():
                 raise FileExistsError()
-
-
             # for m, f in root.groups():
             #     # Loop through files in inpDir image collection and process
             #     if str(f) in inpDir_files :
             #         br = BioReader(str(Path(inpDir).joinpath(f).absolute()), max_workers=1)
             #         images = np.squeeze(br.read())
             #         labels= f['flow']
-            images,labels = read(inpDir,flow_path)
 
-            cpmodel_path = model.train(images, labels, train_files=image_names,
-                                           test_data=test_images, test_labels=test_labels, test_files=image_names_test,
+
+            # trtain data
+            train_images,train_labels = read(inpDir,flow_path,train_img_names)
+            # test data
+            test_images,test_labels  = read(inpDir,flow_path,test_img_names)
+
+            print(len(train_images),len(train_labels))
+            cpmodel_path = model.train(train_images, train_labels, train_files=train_img_names,
+                                           test_data=test_images, test_labels=test_labels, test_files=test_img_names,
                                            learning_rate=args.learning_rate, channels=channels,
                                            save_path=outDir, rescale=rescale,
                                            n_epochs=args.n_epochs,
