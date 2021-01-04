@@ -1,5 +1,5 @@
 from bfio import BioReader
-import argparse, logging, sys
+import argparse, logging, sys,time
 import numpy as np
 from pathlib import Path
 import zarr
@@ -70,7 +70,6 @@ if __name__=="__main__":
             rescale = model.diam_mean / diameter
         else:
             raise FileNotFoundError()
-
         try:
             if Path(outDir).joinpath('location.zarr').exists():
                 raise FileExistsError()
@@ -80,6 +79,8 @@ if __name__=="__main__":
                 # Loop through files in inpDir image collection and process
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
                 image = np.squeeze(br.read())
+                logger.info('processing image %s' % f)
+                tic0 = time.time()
                 # Serially iterating   z stack images
                 if len(image.shape) >= 3:
                     if len(image.shape) == 4:
@@ -97,6 +98,7 @@ if __name__=="__main__":
                 elif len(image.shape) == 2:
                     location, prob = model.eval(image, diameter=diameter,rescale=rescale)
 
+                logger.info(' Total time taken to process %s is %0.2f sec' % (f,time.time() - tic0))
               # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)
                 init_cluster_1 = cluster.create_dataset('pixel_location', shape=location.shape, data=location)

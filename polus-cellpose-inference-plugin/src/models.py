@@ -93,9 +93,9 @@ class Cellpose():
         else:
             nolist = False
 
-        tic0 = time.time()
+      #  tic0 = time.time()
         nimg = len(x)
-        logger.info('processing image')
+
         # make rescale into length of x
         if diameter is not None and diameter!=0:
             if not isinstance(diameter, list) or len(diameter)==1 or len(diameter)<nimg:
@@ -107,20 +107,16 @@ class Cellpose():
             if rescale is not None and (not isinstance(rescale, list) or len(rescale)==1):
                 rescale = rescale * np.ones(nimg, np.float32)
             if self.pretrained_size is not None and rescale is None :
-                tic = time.time()
                 diams, _ = self.sz.eval(x, invert=invert, batch_size=self.batch_size, augment=augment, tile=tile)
                 rescale = self.diam_mean / diams.copy()
-                logger.info('estimated cell diameter  in %0.2f sec'%(time.time()-tic))
+
             else:
                 if rescale is None:
-
                     rescale = np.ones(nimg, np.float32)
                 diams = self.diam_mean / rescale.copy() 
 
-        tic = time.time()
-        loc,prob= self.cp.eval(x, invert=invert, rescale=rescale, anisotropy=anisotropy,augment=augment, tile=tile,net_avg=net_avg)
-        logger.info('Estimated probablity of cells   in %0.2f sec'%( time.time()-tic))
-        logger.info(' TOTAL TIME %0.2f sec'%(time.time()-tic0))
+
+        loc,prob= self.cp.eval(x, invert=invert, rescale=rescale, augment=augment, tile=tile,net_avg=net_avg)
         return loc,prob
 
 class CellposeModel():
