@@ -7,11 +7,9 @@ import os, sys, time, pathlib, logging
 import numpy as np
 from tqdm import trange
 from urllib.parse import urlparse
-
 import cv2
 import transforms, dynamics, utils
 from core import UnetModel, assign_device, convert_images, parse_model_string
-
 
 logging.basicConfig(format='%(asctime)s - %(name)-8s - %(levelname)-8s - %(message)s',
                     datefmt='%d-%b-%y %H:%M:%S')
@@ -199,13 +197,7 @@ class Cellpose():
                                        min_size=min_size,
                                        stitch_threshold=stitch_threshold)
 
-        #  print('estimated masks  in %0.2f sec'%(nimg, time.time()-tic))
-        # print('TOTAL TIME taken %0.2f sec'%(time.time()-tic0))
 
-        # if nolist:
-        #        masks, flows, styles, diams = masks[0], flows[0], styles[0], diams[0]
-
-        #   return masks, flows, styles, diams
         return loc, prob
 
 
