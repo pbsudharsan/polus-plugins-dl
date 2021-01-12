@@ -1,10 +1,9 @@
 from bfio import BioReader
-import argparse, logging, sys,time
+import argparse, logging, sys
 import numpy as np
 from pathlib import Path
 import zarr
-import mxnet as mx
-import models, utils
+import models
 
 if __name__=="__main__":
     # Initialize the logger
@@ -21,9 +20,8 @@ if __name__=="__main__":
     parser.add_argument('--inpDir', dest='inpDir', type=str,
                         help='Input image collection to be processed by this plugin', required=True)
     parser.add_argument('--pretrained_model', dest='pretrained_model', type=str,
-                        help='Select the model based on structure you want to segment cyto/nuclei', required=False)
-    parser.add_argument('--cpretrained_model', dest='cpretrained_model', type=str,
-                        help='Path to custom pretrained model ', required=False)
+                        help='Filename pattern used to separate data', required=False)
+
     # Output arguments
     parser.add_argument('--outDir', dest='outDir', type=str,
                         help='Output collection', required=True)
@@ -37,15 +35,8 @@ if __name__=="__main__":
     logger.info('inpDir = {}'.format(inpDir))
     pretrained_model = args.pretrained_model
     logger.info('pretrained_model = {}'.format(pretrained_model))
-    cpretrained_model= args.cpretrained_model
     outDir = args.outDir
     logger.info('outDir = {}'.format(outDir))
-    use_gpu = utils.use_gpu()
-    if use_gpu:
-        device = mx.gpu()
-    else:
-        device = mx.cpu()
-    logger.info('Using %s'%(['CPU', 'GPU'][use_gpu]))
 
     # Surround with try/finally for proper error catching
     try:
@@ -59,28 +50,30 @@ if __name__=="__main__":
         else:
             diameter = args.diameter
             logger.info(' Using diameter %0.2f for all images' % diameter)
-        # Checking for custom models
-        if cpretrained_model:
-            pretrained_model= cpretrained_model
-            logger.info('Running model in path %s' % cpretrained_model)
+
+        if not pretrained_model:
+            logger.info('Running the images on Cyto model')
+            pretrained_model = 'cyto'
         if pretrained_model is 'cyto' or 'nuclei':
-            model = models.Cellpose(device=device, model_type=pretrained_model)
+           # model = models.Cellpose(device=device,gpu=use_gpu, model_type=pretrained_model)
+             model = models.Cellpose( model_type=pretrained_model)
         elif Path(pretrained_model).exists():
-            model = models.CellposeModel(device=device, pretrained_model=pretrained_model)
+            model = models.CellposeModel( pretrained_model=pretrained_model)
             rescale = model.diam_mean / diameter
         else:
             raise FileNotFoundError()
+
         try:
             if Path(outDir).joinpath('location.zarr').exists():
                 raise FileExistsError()
 
             root = zarr.group(store=str(Path(outDir).joinpath('location.zarr')))
+
             for f in inpDir_files:
                 # Loop through files in inpDir image collection and process
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
                 image = np.squeeze(br.read())
-                logger.info('processing image %s' % f)
-                tic0 = time.time()
+                logger.info('Processing image %s ',f)
                 # Serially iterating   z stack images
                 if len(image.shape) >= 3:
                     if len(image.shape) == 4:
@@ -89,16 +82,16 @@ if __name__=="__main__":
                     location_final = []
                     for i in range(image.shape[-1]):
                         location, prob = model.eval(image[:, :, i], diameter=diameter,rescale=rescale)
+
                         prob_final.append(prob.tolist())
                         location_final.append(location.tolist())
-
                     prob = np.asarray(prob_final)
                     location = np.asarray(location_final)
+
                # Segmenting  Greyscale images
                 elif len(image.shape) == 2:
                     location, prob = model.eval(image, diameter=diameter,rescale=rescale)
 
-                logger.info(' Total time taken to process %s is %0.2f sec' % (f,time.time() - tic0))
               # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)
                 init_cluster_1 = cluster.create_dataset('pixel_location', shape=location.shape, data=location)
