@@ -537,15 +537,15 @@ def random_rotate_and_resize(X, Y=None, scale_range=1., xy=(224, 224),
     else:
         nchan = 1
     imgi = np.zeros((nimg, nchan, xy[0], xy[1]), np.float32)
-
     lbl = []
+
     if Y is not None:
         if Y[0].ndim > 2:
             nt = Y[0].shape[0]
         else:
             nt = 1
-        lbl = np.zeros((nimg, nt, xy[0], xy[1]), np.float32)
 
+        lbl = np.zeros((nimg, nt, xy[0], xy[1]), np.float32)
     scale = np.zeros(nimg, np.float32)
     for n in range(nimg):
         Ly, Lx = X[n].shape[-2:]

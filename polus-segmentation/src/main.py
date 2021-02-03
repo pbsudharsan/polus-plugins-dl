@@ -5,7 +5,6 @@ import numpy as np
 from pathlib import Path
 import os
 import zarr
-import mxnet as mx
 import models,utils
 
 def read (inpDir,flow_path,image_names):
@@ -14,10 +13,12 @@ def read (inpDir,flow_path,image_names):
     root = zarr.open(str(Path(flow_path).joinpath('flow.zarr')), mode='r')
     for f in image_names:
         br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
-        if f not in root.keys():
-            print('%s not present in zarr file',f)
+        mask_name= str(str(f).split('.',1)[0]+'_mask.'+str(f).split('.',1)[1])
+        if mask_name not in root.keys():
+            print('%s not present in zarr file'%mask_name)
         image_all.append(np.squeeze(br.read()))
-        flow_list.append(root[f]['flow'])
+        flow_list.append(root[mask_name]['flow'])
+     #   print(root[mask_name]['flow'][0,...].shape)
     return image_all,flow_list
 
 
@@ -55,19 +56,22 @@ if __name__=="__main__":
                         default=8, type=int, help='batch size')
     parser.add_argument('--residual_on', required=False,
                         default=1, type=int, help='use residual connections')
-  #  parser.add_argument('--style_on', required=False,
- #                       default=1, type=int, help='use style vector')
+    parser.add_argument('--style_on', required=False,
+                        default=1, type=int, help='use style vector')
     parser.add_argument('--concatenation', required=False,
                         default=0, type=int,
                         help='concatenate downsampled layers with upsampled layers (off by default which means they are added)')
     parser.add_argument('--train_fraction', required=False,
                         default=0.8, type=float, help='test train split')
+    parser.add_argument('--nclasses', required=False,
+                        default=3, type=int, help='if running unet, choose 2 or 3, otherwise not used')
     # Output arguments
     parser.add_argument('--outDir', dest='outDir', type=str,
                         help='Output collection', required=True)
     # Parse the arguments
     args = parser.parse_args()
-    logger.info('diameter = {}'.format(args.diameter))
+    diameter=args.diameter
+    logger.info('diameter = {}'.format(diameter))
     inpDir = args.inpDir
     if (Path.is_dir(Path(args.inpDir).joinpath('images'))):
         # switch to images folder if present
@@ -80,30 +84,23 @@ if __name__=="__main__":
     flow_path=args.flow_path
     cpmodel_path= args.cpmodel_path
     train_fraction=args.train_fraction
-    use_gpu = models.use_gpu()
-    if use_gpu:
-        device = mx.gpu()
-    else:
-        device = mx.cpu()
-    logger.info('Using %s'%(['CPU', 'GPU'][use_gpu]))
     model_dir = Path.home().joinpath('.cellpose', 'models')
 
-
     if pretrained_model == 'cyto' or pretrained_model == 'nuclei':
-        cpmodel_path = os.fspath(model_dir.joinpath('%s_0' % (args.pretrained_model)))
-        if args.pretrained_model == 'cyto':
+        torch_str = 'torch'
+        cpmodel_path = os.fspath(model_dir.joinpath('%s%s_0' % (pretrained_model, torch_str)))
+        if pretrained_model == 'cyto':
             szmean = 30.
         else:
             szmean = 17.
     else:
-        #cpmodel_path = os.fspath(cpmodel_path)
+        cpmodel_path = os.fspath(pretrained_model)
         szmean = 30
 
-    if cpmodel_path and not  Path(cpmodel_path).exists():
-        raise ValueError('ERROR: model path missing or incorrect - cannot train size model')
+    if  not Path(cpmodel_path).exists():
         cpmodel_path = False
         print('>>>> training from scratch')
-        if args.diameter == 0:
+        if diameter == 0:
             rescale = False
             print('>>>> median diameter set to 0 => no rescaling during training')
         else:
@@ -117,11 +114,8 @@ if __name__=="__main__":
         args.style_on = 1
         args.concatenation = 0
 
-    if args.unet:
-        model = models.UnetModel(device=device,pretrained_model=cpmodel_path,diam_mean=szmean,residual_on=args.residual_on,style_on=args.style_on,concatenation=args.concatenation,nclasses=args.nclasses)
-    else :
 
-        model = models.CellposeModel(device=device,pretrained_model=cpmodel_path,diam_mean=szmean,residual_on=args.residual_on,style_on=args.style_on,concatenation=args.concatenation)
+    model = models.CellposeModel(pretrained_model=cpmodel_path,diam_mean=szmean,residual_on=args.residual_on,style_on=args.style_on,concatenation=args.concatenation)
     # Surround with try/finally for proper error catching
     try:
         # Start the javabridge with proper java logging
@@ -130,9 +124,8 @@ if __name__=="__main__":
         # Get all file names in inpDir image collection
        # channels = [args.chan, args.chan2]
         channels =[0,0]
-        cstr0 = ['GRAY', 'RED', 'GREEN', 'BLUE']
-        cstr1 = ['NONE', 'RED', 'GREEN', 'BLUE']
-        image_names = [f.name for f in Path(inpDir).iterdir() if f.is_file()  ]
+
+        image_names = [f.name for f in Path(inpDir).iterdir() if f.is_file() and "".join(f.suffixes) == '.tif'  ]
         random.shuffle(image_names)
         idx = int(train_fraction * len(image_names))
         train_img_names = image_names[0:idx]
@@ -145,20 +138,12 @@ if __name__=="__main__":
         try:
             if not Path(flow_path).joinpath('flow.zarr').exists():
                 raise FileExistsError()
-            # for m, f in root.groups():
-            #     # Loop through files in inpDir image collection and process
-            #     if str(f) in inpDir_files :
-            #         br = BioReader(str(Path(inpDir).joinpath(f).absolute()), max_workers=1)
-            #         images = np.squeeze(br.read())
-            #         labels= f['flow']
 
-
-            # trtain data
+            # train data
             train_images,train_labels = read(inpDir,flow_path,train_img_names)
             # test data
             test_images,test_labels  = read(inpDir,flow_path,test_img_names)
 
-            print(len(train_images),len(train_labels))
             cpmodel_path = model.train(train_images, train_labels, train_files=train_img_names,
                                            test_data=test_images, test_labels=test_labels, test_files=test_img_names,
                                            learning_rate=args.learning_rate, channels=channels,
