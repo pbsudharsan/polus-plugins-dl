@@ -81,16 +81,15 @@ if __name__=="__main__":
                     prob_final = []
                     location_final = []
                     for i in range(image.shape[-1]):
-                        _, prob = model.eval(image[:, :, i], diameter=diameter,rescale=rescale)
-
-                        prob_final.append(prob.tolist())
+                         prob = model.eval(image[:, :, i], diameter=diameter,rescale=rescale)
+                         prob_final.append(prob.tolist())
                 #        location_final.append(location.tolist())
                     prob = np.asarray(prob_final)
          #           location = np.asarray(location_final)
 
                # Segmenting  Greyscale images
                 elif len(image.shape) == 2:
-                    _, prob = model.eval(image, diameter=diameter,rescale=rescale)
+                     prob = model.eval(image, diameter=diameter,rescale=rescale)
 
               # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)

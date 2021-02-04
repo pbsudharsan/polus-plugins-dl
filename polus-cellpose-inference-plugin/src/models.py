@@ -181,7 +181,7 @@ class Cellpose():
                 diams = self.diam_mean / rescale
 
 
-        loc, prob, _, _ = self.cp.eval(x, batch_size=batch_size,
+        prob, _, _ = self.cp.eval(x, batch_size=batch_size,
                                        invert=invert,
                                        rescale=rescale,
                                        anisotropy=anisotropy,
@@ -197,8 +197,7 @@ class Cellpose():
                                        min_size=min_size,
                                        stitch_threshold=stitch_threshold)
 
-        print(prob.shape,'testy')
-        return loc, prob
+        return  prob
 
 
 class CellposeModel(UnetModel):
@@ -369,21 +368,21 @@ class CellposeModel(UnetModel):
                 if not_compute:
 
                     y = transforms.resize_image(y, shape[-3], shape[-2])
-                    print('yallo',y.shape)
+
                     cellprob = y[:, :, -1]
             #        print(y.shape,'flow')
-                    dP = np.stack((y[..., 0], y[..., 1]), axis=0)
+           #         dP = np.stack((y[..., 0], y[..., 1]), axis=0)
                    # tess=np.stack((dP,cellprob), axis=0)
                 #    print(dP.shape,'tesitng',cellprob.shape,tess.shape)
                     niter = 1 / rescale[i] * 200
 
-                    p = dynamics.follow_flows(-1 * dP * (cellprob > cellprob_threshold) / 5.,
-                                                  niter=niter, interp=True, use_gpu=self.gpu)
+               #     p = dynamics.follow_flows(-1 * dP * (cellprob > cellprob_threshold) / 5.,
+              #                                    niter=niter, interp=True, use_gpu=self.gpu)
 
                 else:
                     flows.append([None] * 3)
                     masks.append([])
-        return p, y, masks, styles
+        return  y, masks, styles
 
 
 
