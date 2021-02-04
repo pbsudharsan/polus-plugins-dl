@@ -197,7 +197,7 @@ class Cellpose():
                                        min_size=min_size,
                                        stitch_threshold=stitch_threshold)
 
-
+        print(prob.shape,'testy')
         return loc, prob
 
 
@@ -347,10 +347,12 @@ class CellposeModel(UnetModel):
                 if resample:
                     y = transforms.resize_image(y, shape[-3], shape[-2])
                 cellprob = y[:, :, -1]
+
                 dP = y[:, :, :2].transpose((2, 0, 1))
                 niter = 1 / rescale[i] * 200
+
                 p = dynamics.follow_flows(-1 * dP * (cellprob > cellprob_threshold) / 5.,
-                                              niter=niter, interp=interp, use_gpu=self.gpu)
+                                                niter=niter, interp=interp, use_gpu=self.gpu)
                 maski = dynamics.get_masks(p, iscell=(cellprob > cellprob_threshold),
                                                flows=dP, threshold=flow_threshold)
                 maski = utils.fill_holes_and_remove_small_masks(maski)
@@ -365,10 +367,14 @@ class CellposeModel(UnetModel):
 
             else:
                 if not_compute:
-                    y = transforms.resize_image(y, shape[-3], shape[-2])
 
+                    y = transforms.resize_image(y, shape[-3], shape[-2])
+                    print('yallo',y.shape)
                     cellprob = y[:, :, -1]
+            #        print(y.shape,'flow')
                     dP = np.stack((y[..., 0], y[..., 1]), axis=0)
+                   # tess=np.stack((dP,cellprob), axis=0)
+                #    print(dP.shape,'tesitng',cellprob.shape,tess.shape)
                     niter = 1 / rescale[i] * 200
 
                     p = dynamics.follow_flows(-1 * dP * (cellprob > cellprob_threshold) / 5.,

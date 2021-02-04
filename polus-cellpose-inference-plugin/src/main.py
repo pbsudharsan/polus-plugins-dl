@@ -81,23 +81,22 @@ if __name__=="__main__":
                     prob_final = []
                     location_final = []
                     for i in range(image.shape[-1]):
-                        location, prob = model.eval(image[:, :, i], diameter=diameter,rescale=rescale)
+                        _, prob = model.eval(image[:, :, i], diameter=diameter,rescale=rescale)
 
                         prob_final.append(prob.tolist())
-                        location_final.append(location.tolist())
+                #        location_final.append(location.tolist())
                     prob = np.asarray(prob_final)
-                    location = np.asarray(location_final)
+         #           location = np.asarray(location_final)
 
                # Segmenting  Greyscale images
                 elif len(image.shape) == 2:
-                    location, prob = model.eval(image, diameter=diameter,rescale=rescale)
+                    _, prob = model.eval(image, diameter=diameter,rescale=rescale)
 
               # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)
-                init_cluster_1 = cluster.create_dataset('pixel_location', shape=location.shape, data=location)
                 init_cluster_2 = cluster.create_dataset('probablity', shape=prob.shape, data=prob)
                 cluster.attrs['metadata'] = str(br.metadata)
-                del location, prob
+                del  prob
 
         except FileExistsError:
             logger.info('Zarr file exists. Delete the existing file %r' % str((Path(outDir).joinpath('location.zarr'))))

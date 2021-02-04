@@ -211,16 +211,6 @@ def follow_flows(dP, niter=200, interp=True, use_gpu=False):
     shape = np.array(dP.shape[1:]).astype(np.int32)
     niter = np.int32(niter)
 
-    # if len(shape)>2:
-    #     p = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]),
-    #             np.arange(shape[2]), indexing='ij')
-    #     p = np.array(p).astype(np.float32)
-    #     # run dynamics on subset of pixels
-    #
-    #     inds = np.array(np.nonzero(np.abs(dP[0])>1e-3)).astype(np.int32).T
-    #     p = steps3D(p, dP, inds, niter)
-    # else:
-
     p = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing='ij')
     p = np.array(p).astype(np.float32)
     # run dynamics on subset of pixels
