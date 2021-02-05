@@ -313,6 +313,7 @@ class CellposeModel(UnetModel):
             if diameter is not None:
                 if not isinstance(diameter, (list, np.ndarray)):
                     diameter = diameter * np.ones(nimg)
+                    print(diameter,'diameter')
                 rescale = self.diam_mean / diameter
             else:
                 rescale = np.ones(nimg)
@@ -366,18 +367,7 @@ class CellposeModel(UnetModel):
 
             else:
                 if not_compute:
-
                     y = transforms.resize_image(y, shape[-3], shape[-2])
-
-                    cellprob = y[:, :, -1]
-            #        print(y.shape,'flow')
-           #         dP = np.stack((y[..., 0], y[..., 1]), axis=0)
-                   # tess=np.stack((dP,cellprob), axis=0)
-                #    print(dP.shape,'tesitng',cellprob.shape,tess.shape)
-                    niter = 1 / rescale[i] * 200
-
-               #     p = dynamics.follow_flows(-1 * dP * (cellprob > cellprob_threshold) / 5.,
-              #                                    niter=niter, interp=True, use_gpu=self.gpu)
 
                 else:
                     flows.append([None] * 3)

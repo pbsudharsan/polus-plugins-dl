@@ -64,10 +64,10 @@ if __name__=="__main__":
             raise FileNotFoundError()
 
         try:
-            if Path(outDir).joinpath('location.zarr').exists():
+            if Path(outDir).joinpath('flow.zarr').exists():
                 raise FileExistsError()
 
-            root = zarr.group(store=str(Path(outDir).joinpath('location.zarr')))
+            root = zarr.group(store=str(Path(outDir).joinpath('flow.zarr')))
 
             for f in inpDir_files:
                 # Loop through files in inpDir image collection and process
@@ -93,7 +93,7 @@ if __name__=="__main__":
 
               # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)
-                init_cluster_2 = cluster.create_dataset('probablity', shape=prob.shape, data=prob)
+                init_cluster_1 = cluster.create_dataset('vector', shape=prob.shape, data=prob)
                 cluster.attrs['metadata'] = str(br.metadata)
                 del  prob
 
