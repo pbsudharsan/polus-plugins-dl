@@ -103,7 +103,7 @@ class Cellpose():
         self.sz.model_type = model_type
 
     def eval(self, x, batch_size=8, channels=None, invert=False, normalize=True, diameter=30.,
-             anisotropy=None,
+             anisotropy=None,tile_size=224,
              net_avg=True, augment=False, tile=True, tile_overlap=0.1, resample=False, interp=True,
              flow_threshold=0.4, cellprob_threshold=0.0, min_size=15,
              stitch_threshold=0.0, rescale=None):
@@ -195,7 +195,7 @@ class Cellpose():
                                        flow_threshold=flow_threshold,
                                        cellprob_threshold=cellprob_threshold,
                                        min_size=min_size,
-                                       stitch_threshold=stitch_threshold)
+                                       stitch_threshold=stitch_threshold,tile_size=tile_size)
 
         return  prob
 
@@ -254,7 +254,7 @@ class CellposeModel(UnetModel):
 
     def eval(self, imgs, batch_size=8, channels=None, normalize=True, invert=False,
              rescale=None, diameter=None, anisotropy=None, net_avg=True,
-             augment=False, tile=True, tile_overlap=0.1,
+             augment=False, tile=True, tile_overlap=0.1,tile_size=224,
              resample=False, interp=True, flow_threshold=0.4, cellprob_threshold=0.0, compute_masks=False,
              min_size=15, stitch_threshold=0.0, not_compute=True):
         """
@@ -339,7 +339,7 @@ class CellposeModel(UnetModel):
             img = transforms.resize_image(img, rsz=rescale[i])
             y, style = self._run_nets(img, net_avg=net_avg,
                                           augment=augment, tile=tile,
-                                          tile_overlap=tile_overlap)
+                                          tile_overlap=tile_overlap,bsize=tile_size)
             net_time += time.time() - tic
             styles.append(style)
             if compute_masks:
@@ -350,7 +350,6 @@ class CellposeModel(UnetModel):
 
                 dP = y[:, :, :2].transpose((2, 0, 1))
                 niter = 1 / rescale[i] * 200
-
                 p = dynamics.follow_flows(-1 * dP * (cellprob > cellprob_threshold) / 5.,
                                                 niter=niter, interp=interp, use_gpu=self.gpu)
                 maski = dynamics.get_masks(p, iscell=(cellprob > cellprob_threshold),
@@ -358,12 +357,9 @@ class CellposeModel(UnetModel):
                 maski = utils.fill_holes_and_remove_small_masks(maski)
                 maski = transforms.resize_image(maski, shape[-3], shape[-2],
                                                     interpolation=cv2.INTER_NEAREST)
-
-                # dP = np.concatenate((dP, np.zeros((1,dP.shape[1],dP.shape[2]), np.uint8)), axis=0)
                 flows.append([dx_to_circ(dP), dP, cellprob, p])
                 masks.append(maski)
                 flow_time += time.time() - tic
-                masks = utils.stitch3D(np.array(masks), stitch_threshold=stitch_threshold)
 
             else:
                 if not_compute:
@@ -372,8 +368,7 @@ class CellposeModel(UnetModel):
                 else:
                     flows.append([None] * 3)
                     masks.append([])
-        return  y, masks, styles
-
+        return y, masks, styles
 
 
 class SizeModel():
@@ -448,15 +443,8 @@ class SizeModel():
             masks = self.cp.eval(x, rescale=self.diam_mean / diam_style, net_avg=False,
                                  augment=augment, tile=tile, interp=False, compute_masks=True)[-2]
             diam = np.array([utils.diameters(masks[i])[0] for i in range(nimg)])
-
-            if hasattr(self, 'model_type') and (
-                    self.model_type == 'nuclei' or self.model_type == 'cyto') and not self.torch:
-                diam_style /= (np.pi ** 0.5) / 2
-                diam[diam == 0] = self.diam_mean / ((np.pi ** 0.5) / 2)
-                diam[np.isnan(diam)] = self.diam_mean / ((np.pi ** 0.5) / 2)
-            else:
-                diam[diam == 0] = self.diam_mean
-                diam[np.isnan(diam)] = self.diam_mean
+            diam[diam == 0] = self.diam_mean
+            diam[np.isnan(diam)] = self.diam_mean
         else:
             diam = diam_style
             print('no images provided, using diameters estimated from styles alone')
@@ -466,9 +454,7 @@ class SizeModel():
             return diam, diam_style
 
     def _size_estimation(self, style):
-        """ linear regression from style to size 
-        
-            sizes were estimated using "diameters" from square estimates not circles; 
+        """ linear regression from style to size.Sizes were estimated using "diameters" from square estimates not circles;
             therefore a conversion factor is included (to be removed)
         
         """

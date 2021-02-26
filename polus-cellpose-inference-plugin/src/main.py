@@ -5,6 +5,8 @@ from pathlib import Path
 import zarr
 import models
 
+
+
 if __name__=="__main__":
     # Initialize the logger
     logging.basicConfig(format='%(asctime)s - %(name)-8s - %(levelname)-8s - %(message)s',
@@ -21,7 +23,8 @@ if __name__=="__main__":
                         help='Input image collection to be processed by this plugin', required=True)
     parser.add_argument('--pretrained_model', dest='pretrained_model', type=str,
                         help='Filename pattern used to separate data', required=False)
-
+    parser.add_argument('--tile_size', dest='tile_size', type=int,
+                        help='Tile size ', required=False)
     # Output arguments
     parser.add_argument('--outDir', dest='outDir', type=str,
                         help='Output collection', required=True)
@@ -37,7 +40,7 @@ if __name__=="__main__":
     logger.info('pretrained_model = {}'.format(pretrained_model))
     outDir = args.outDir
     logger.info('outDir = {}'.format(outDir))
-
+    tile_size = args.tile_size
     # Surround with try/finally for proper error catching
     try:
         logger.info('Initializing ...')
@@ -55,7 +58,6 @@ if __name__=="__main__":
             logger.info('Running the images on Cyto model')
             pretrained_model = 'cyto'
         if pretrained_model is 'cyto' or 'nuclei':
-           # model = models.Cellpose(device=device,gpu=use_gpu, model_type=pretrained_model)
              model = models.Cellpose( model_type=pretrained_model)
         elif Path(pretrained_model).exists():
             model = models.CellposeModel( pretrained_model=pretrained_model)
@@ -73,29 +75,25 @@ if __name__=="__main__":
                 # Loop through files in inpDir image collection and process
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
                 image = np.squeeze(br.read())
-                logger.info('Processing image %s ',f)
-                # Serially iterating   z stack images
-                if len(image.shape) >= 3:
-                    if len(image.shape) == 4:
-                        np.moveaxis(image, 2, 3)
-                    prob_final = []
-                    location_final = []
-                    for i in range(image.shape[-1]):
-                         prob = model.eval(image[:, :, i], diameter=diameter,rescale=rescale)
-                         prob_final.append(prob.tolist())
-                #        location_final.append(location.tolist())
-                    prob = np.asarray(prob_final)
-         #           location = np.asarray(location_final)
 
-               # Segmenting  Greyscale images
-                elif len(image.shape) == 2:
-                     prob = model.eval(image, diameter=diameter,rescale=rescale)
+                logger.info('Processing image %s ',f)
+                out_image=np.zeros((br.Z,br.X,br.Y,3)).astype(np.float32)
+                for z in range(br.Z):
+                    for x in range(0, br.X, tile_size):
+                        x_max = min([br.X, x + tile_size])
+                        for y in range(0, br.Y, tile_size):
+                            y_max = min([br.Y, y + tile_size])
+                            test=(br[y:y_max, x:x_max,z:z+1, 0,0]).squeeze()
+                            prob = model.eval(test, diameter=diameter,rescale=rescale)
+                            out_image[z:z+1,y:y_max, x:x_max,]= prob[np.newaxis,]
+                out_image= out_image[...,np.newaxis]
+                out_image=out_image.transpose((1,2,0,3,4)).astype(np.float32)
 
               # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)
-                init_cluster_1 = cluster.create_dataset('vector', shape=prob.shape, data=prob)
+                init_cluster_1 = cluster.create_dataset('vector', shape=out_image.shape, data=out_image,chunks=(out_image.shape),dtype=prob.dtype)
                 cluster.attrs['metadata'] = str(br.metadata)
-                del  prob
+                del  prob,out_image
 
         except FileExistsError:
             logger.info('Zarr file exists. Delete the existing file %r' % str((Path(outDir).joinpath('location.zarr'))))

@@ -53,7 +53,6 @@ def average_tiles(y, ysub, xsub, Ly, Lx):
     xsub(list) : list of arrays with start and end of tiles in X of length ntiles
     Ly(int) : size of pre-tiled image in Y (may be larger than original image if image size is less than bsize)
     Lx(int) : size of pre-tiled image in X (may be larger than original image if image size is less than bsize)
-
     Returns:
     yf(array[float32]):  [nclasses x Ly x Lx] network output averaged over tiles
 
@@ -86,7 +85,6 @@ def make_tiles(imgi, bsize=224, augment=False, tile_overlap=0.1):
     xsub(list): list of arrays with start and end of tiles in X of length ntiles
 
     """
-
     nchan, Ly, Lx = imgi.shape
     if augment:
         bsize = np.int32(bsize)
@@ -143,7 +141,12 @@ def make_tiles(imgi, bsize=224, augment=False, tile_overlap=0.1):
     return IMG, ysub, xsub, Ly, Lx
 
 def normalize99(img):
-    """ normalize image so 0.0 is 1st percentile and 1.0 is 99th percentile """
+    """ normalize image so 0.0 is 1st percentile and 1.0 is 99th percentile
+    Args:
+    img(array) : numpy array that's (x  Ly x Lx x nchan)
+    Returns:
+    x(array) :  Normalised numpy image
+    """
     X = img.copy()
     X = (X - np.percentile(X, 1)) / (np.percentile(X, 99) - np.percentile(X, 1))
     return X
@@ -158,7 +161,6 @@ def reshape(data, channels=[0,0], chan_first=False):
         For instance, to train on grayscale images, input [0,0]. To train on images with cells
         in green and nuclei in blue, input [2,3].
     invert(bool) : invert intensities
-
     Returns:
     data(array) : numpy array that's (Z x ) Ly x Lx x nchan (if chan_first==False)
 
@@ -203,7 +205,6 @@ def normalize_img(img, axis=-1, invert=False):
     Args:
     img(array): ND-array
     axis(int): channel axis to loop over for normalization
-
     Returns:
     img(array[float32]): ND-array.normalized image of same size
 
