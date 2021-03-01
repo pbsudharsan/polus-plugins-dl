@@ -1,4 +1,4 @@
-FROM   labshare/polus-bfio-util:2.0.2-tensorflow
+FROM   labshare/polus-bfio-util:2.0.4-tensorflow
 
 COPY VERSION /
 

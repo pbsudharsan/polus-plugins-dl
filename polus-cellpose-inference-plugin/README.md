@@ -1,7 +1,13 @@
 # Cellpose 
-This plugin is a implementation of   segementing images using  pretrained models  implemented by Cellpose.[Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1) is a generalist algorithm for cell and nucleus segmentation.Cellpose uses two major innovations: a reversible transformation from training set masks to vector flows that can be predicted by a neural network, and a large segmented dataset of varied images of cells. In addition, multiple smaller improvements to the basic approach led to a significant cumulative performance increase: we developed methods to use an image “style” for changing the neural network computation on an image by image basis, to validate segmented ROIs, to average the predictions of multiple models, to resize images to a common object size, to average model predictions in overlapping tiles, and to augment those predictions by flipping the tiles horizontally and vertically.
+This plugin is an implementation of segmenting 2D/ 3D images using  pretrained models implemented by Cellpose.[Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1) 
+is a generalist algorithm for cell and nucleus segmentation. Cellpose uses two major innovations: a reversible transformation 
+from training set masks to vector flows that can be predicted by a neural network, and a large segmented dataset of varied images of cells. 
+ 
+This plugin can predict of cells and segment images. The default diameter used for segmenting images is 30.Pass 0 as argument 
+if you want to run the regression model to predict the diameter.This plugin saves network predicted vector field in a zarr file.
 
-This plugin has been tested with CUDA 10.1 and can be used for  segmenting 2D and 3D images.
+This plugin has been tested with CUDA 10.1 ,bfio:2.0.4 and run on GPu by default.Images are processed in tiles and plugin can process.
+
 
 ## Building
 
@@ -27,7 +33,7 @@ If WIPP is running, navigate to the plugins page and add a new plugin. Paste the
 
 ## Options
 
-This plugin takes one input argument and one output argument:
+This plugin takes 4 input argument and 1 output argument:
 
 | Name          | Description             | I/O    | Type   |
 |---------------|-------------------------|--------|--------|
@@ -36,3 +42,5 @@ This plugin takes one input argument and one output argument:
 | `--pretrained_model` | Select the model based on structure you want to segment cyto/nuclei | Input | string |
 | `--cpretrained_model` | Path to custom pretrained model | Input | string |
 | `--outDir` | Output collection | Output | Generic Data type |
+
+

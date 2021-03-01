@@ -1,14 +1,14 @@
 {
     "name": "Cellpose-inference ",
-    "version": "0.2.4",
+    "version": "0.2.8",
     "title": "Cellpose-inference  ",
     "description": "Semantic segmentation of cell/nuclei",
-    "author": "Sudharsan (sudharsan.prativadi@labshare.org)",
+    "author": "Sudharsan Prativadi (sudharsan.prativadi@labshare.org)",
     "institution": "National Center for Advancing Translational Sciences, National Institutes of Health",
     "repository": "https://github.com/labshare/polus-plugins",
     "website": "https://ncats.nih.gov/preclinical/core/informatics",
     "citation": "Cellpose a generalist, deep learning-based segmentation algorithm which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments, https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1",
-    "containerId": "labshare/polus-cellpose-inference-plugin:0.2.4",
+    "containerId": "labshare/polus-cellpose-inference-plugin:0.2.8",
     "inputs": [
       {
         "name": "diameter",
@@ -37,7 +37,7 @@
       },
       {"name":"cpretrained_model" ,
               "type": "tensorflowModel",
-              "description":"Select the custom pretrained model for segmentation ",
+              "description":"Select the custom pretrained model for segmentation",
               "required": true
             }
     ],
@@ -54,21 +54,22 @@
         "title": "Input collection",
         "description": "Input image collection to be processed by this plugin"
       },
+
       {
         "key": "inputs.diameter",
         "title": "Diameter ",
-        "description": "Diameter"
+        "description": "Default value is 30.Enter 0 for the plugin to predict diameter"
       },
 
       {
         "key": "inputs.pretrained_model",
         "title": "Model to use(Cyto/nuclei)",
-        "description": " Object that needs to be segmented "
+        "description": "Object that needs to be segmented"
       },
       {
         "key": "inputs.cpretrained_model",
         "title": "Pretrained Model of choice",
-        "description": " Path to pretrained Model to run the images",
+        "description": "Path to pretrained Model to run the images",
         "condition": "model.inputs.pretrained_model=='custom'"
       }
     ]

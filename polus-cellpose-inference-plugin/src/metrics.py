@@ -2,19 +2,19 @@ import numpy as np
 import dynamics
 
 def flow_error(maski, dP_net):
-    """ error in flows from predicted masks vs flows predicted by network run on image
+    """ Error in flows from predicted masks vs flows predicted by network run on image
     This function serves to benchmark the quality of masks, it works as follows
     1. The predicted masks are used to create a flow diagram
     2. The mask-flows are compared to the flows that the network predicted
     If there is a discrepancy between the flows, it suggests that the mask is incorrect.
     Args:
-    maski(array[int]): ND-array.masks produced from running dynamics on dP_net,
+        maski(array[int]): ND-array.masks produced from running dynamics on dP_net,
         where 0=NO masks; 1,2... are mask labels
-    dP_net(array[float]): ND-array.ND flows where dP_net.shape[1:] = maski.shape
+        dP_net(array[float]): ND-array.ND flows where dP_net.shape[1:] = maski.shape
     Returns:
-    flow_errors(array[float]): float array with length maski.max()
+        flow_errors(array[float]): float array with length maski.max()
         mean squared error between predicted flows and flows from masks
-    dP_masks(array[float]): ND-array.ND flows produced from the predicted masks
+        dP_masks(array[float]): ND-array.ND flows produced from the predicted masks
     
     """
     if dP_net.shape[1:] != maski.shape:

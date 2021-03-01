@@ -7,7 +7,6 @@ import numpy as np
 import warnings
 import cv2
 
-
 def _taper_mask(ly=224, lx=224, sig=7.5):
     bsize = max(224, max(ly, lx))
     xm = np.arange(bsize)
@@ -21,11 +20,10 @@ def _taper_mask(ly=224, lx=224, sig=7.5):
 def unaugment_tiles(y, unet=False):
     """ reverse test-time augmentations for averaging
     Args:
-    y(array[float32]): array that's ntiles_y x ntiles_x x chan x Ly x Lx where chan = (dY, dX, cell prob)
-    unet(bool): whether or not unet output or cellpose output
-
+        y(array[float32]): array that's ntiles_y x ntiles_x x chan x Ly x Lx where chan = (dY, dX, cell prob)
+        unet(bool): whether or not unet output or cellpose output
     Returns:
-    y(array): float32 array
+        y(array): float32 array
 
     """
     for j in range(y.shape[0]):
@@ -46,15 +44,15 @@ def unaugment_tiles(y, unet=False):
     return y
 
 def average_tiles(y, ysub, xsub, Ly, Lx):
-    """ average results of network over tiles
+    """ Average results of network over tiles
     Args:
-    y(array[float32]): [ntiles x nclasses x bsize x bsize]output of cellpose network for each tile
-    ysub(list) : list of arrays with start and end of tiles in Y of length ntiles
-    xsub(list) : list of arrays with start and end of tiles in X of length ntiles
-    Ly(int) : size of pre-tiled image in Y (may be larger than original image if image size is less than bsize)
-    Lx(int) : size of pre-tiled image in X (may be larger than original image if image size is less than bsize)
+        y(array[float32]): [ntiles x nclasses x bsize x bsize]output of cellpose network for each tile
+        ysub(list) : list of arrays with start and end of tiles in Y of length ntiles
+        xsub(list) : list of arrays with start and end of tiles in X of length ntiles
+        Ly(int) : size of pre-tiled image in Y (may be larger than original image if image size is less than bsize)
+        Lx(int) : size of pre-tiled image in X (may be larger than original image if image size is less than bsize)
     Returns:
-    yf(array[float32]):  [nclasses x Ly x Lx] network output averaged over tiles
+        yf(array[float32]):  [nclasses x Ly x Lx] network output averaged over tiles
 
     """
     Navg = np.zeros((Ly,Lx))
@@ -68,21 +66,20 @@ def average_tiles(y, ysub, xsub, Ly, Lx):
     return yf
 
 def make_tiles(imgi, bsize=224, augment=False, tile_overlap=0.1):
-    """ make tiles of image to run at test-time if augmented, tiles are flipped and tile_overlap=2.
+    """Make tiles of image to run at test-time if augmented, tiles are flipped and tile_overlap=2.
         * original
         * flipped vertically
         * flipped horizontally
         * flipped vertically and horizontally
     Args:
-    imgi(array[float32]) : array that's nchan x Ly x Lx
-    bsize(float) :  default 224.size of tiles
-    augment(bool) : default False.flip tiles and set tile_overlap=2.
-    tile_overlap(float): default 0.1.fraction of overlap of tiles
-
+        imgi(array[float32]) : array that's nchan x Ly x Lx
+        bsize(float) :  default 224.size of tiles
+        augment(bool) : default False.flip tiles and set tile_overlap=2.
+        tile_overlap(float): default 0.1.fraction of overlap of tiles
     Returns:
-    IMG(array[float32]) : array that's ntiles x nchan x bsize x bsize
-    ysub(list) : list of arrays with start and end of tiles in Y of length ntiles
-    xsub(list): list of arrays with start and end of tiles in X of length ntiles
+        IMG(array[float32]) : array that's ntiles x nchan x bsize x bsize
+        ysub(list) : list of arrays with start and end of tiles in Y of length ntiles
+        xsub(list): list of arrays with start and end of tiles in X of length ntiles
 
     """
     nchan, Ly, Lx = imgi.shape
@@ -141,28 +138,24 @@ def make_tiles(imgi, bsize=224, augment=False, tile_overlap=0.1):
     return IMG, ysub, xsub, Ly, Lx
 
 def normalize99(img):
-    """ normalize image so 0.0 is 1st percentile and 1.0 is 99th percentile
+    """ Normalize image so 0.0 is 1st percentile and 1.0 is 99th percentile
     Args:
-    img(array) : numpy array that's (x  Ly x Lx x nchan)
+        img(array) : numpy array that's (x  Ly x Lx x nchan)
     Returns:
-    x(array) :  Normalised numpy image
+        x(array) :  Normalised numpy image
     """
     X = img.copy()
     X = (X - np.percentile(X, 1)) / (np.percentile(X, 99) - np.percentile(X, 1))
     return X
 
 def reshape(data, channels=[0,0], chan_first=False):
-    """ reshape data using channels
+    """ Reshape data using channels
     Args:
-    data(array) : numpy array that's (Z x ) Ly x Lx x nchan.if data.ndim==8 and data.shape[0]<8, assumed to be nchan x Ly x Lx
-    channels[list] : list of int of length 2 (optional, default [0,0])
-        First element of list is the channel to segment (0=grayscale, 1=red, 2=blue, 3=green).
-        Second element of list is the optional nuclear channel (0=none, 1=red, 2=blue, 3=green).
-        For instance, to train on grayscale images, input [0,0]. To train on images with cells
-        in green and nuclei in blue, input [2,3].
-    invert(bool) : invert intensities
+        data(array) : numpy array that's (Z x ) Ly x Lx x nchan.if data.ndim==8 and data.shape[0]<8, assumed to be nchan x Ly x Lx
+        channels[list] : list of int of length 2 (optional, default [0,0])
+        invert(bool) : invert intensities
     Returns:
-    data(array) : numpy array that's (Z x ) Ly x Lx x nchan (if chan_first==False)
+        data(array) : numpy array that's (Z x ) Ly x Lx x nchan (if chan_first==False)
 
     """
     data = data.astype(np.float32)
@@ -200,13 +193,13 @@ def reshape(data, channels=[0,0], chan_first=False):
     return data
 
 def normalize_img(img, axis=-1, invert=False):
-    """ normalize each channel of the image so that so that 0.0=1st percentile
+    """ Normalize each channel of the image so that so that 0.0=1st percentile
     and 1.0=99th percentile of image intensities and optional inversion
     Args:
-    img(array): ND-array
-    axis(int): channel axis to loop over for normalization
+        img(array): ND-array
+        axis(int): channel axis to loop over for normalization
     Returns:
-    img(array[float32]): ND-array.normalized image of same size
+        img(array[float32]): ND-array.normalized image of same size
 
     """
     if img.ndim<3:
@@ -225,16 +218,15 @@ def normalize_img(img, axis=-1, invert=False):
 
 
 def resize_image(img0, Ly=None, Lx=None, rsz=None, interpolation=cv2.INTER_LINEAR):
-    """ resize image for computing flows / unresize for computing dynamics
+    """ Resize image for computing flows / unresize for computing dynamics
     Args:
-    img0(array): ND-array..image of size [y x x x nchan] or [Lz x y x x x nchan]
-    Ly(int): optional
-    Lx(int):  optional
-    rsz(float):optional.resize coefficient(s) for image; if Ly is None then rsz is used
-    interpolation(cv2 interp method): default cv2.INTER_LINEAR
-
+        img0(array): ND-array..image of size [y x x x nchan] or [Lz x y x x x nchan]
+        Ly(int): optional
+        Lx(int):  optional
+        rsz(float):optional.resize coefficient(s) for image; if Ly is None then rsz is used
+        interpolation(cv2 interp method): default cv2.INTER_LINEAR
     Returns:
-    imgs(array): ND-array.image of size [Ly x Lx x nchan] or [Lz x Ly x Lx x nchan]
+        imgs(array): ND-array.image of size [Ly x Lx x nchan] or [Lz x Ly x Lx x nchan]
     """
     if Ly is None and rsz is None:
         raise ValueError('must give size to resize to or factor to use for resizing')
@@ -255,15 +247,14 @@ def resize_image(img0, Ly=None, Lx=None, rsz=None, interpolation=cv2.INTER_LINEA
     return imgs
 
 def pad_image_ND(img0, div=16, extra = 1):
-    """ pad image for test-time so that its dimensions are a multiple of 16 (2D or 3D)
+    """ Pad image for test-time so that its dimensions are a multiple of 16 (2D or 3D)
     Args:
-    img0(array): ND-array.image of size [nchan (x Lz) x Ly x Lx]
-    div(int):  default 16
-
+        img0(array): ND-array.image of size [nchan (x Lz) x Ly x Lx]
+        div(int):  default 16
     Returns:
-    I(array): ND-array.padded image
-    ysub(array[int]): yrange of pixels in I corresponding to img0
-    xsub(array[int]): xrange of pixels in I corresponding to img0
+        I(array): ND-array.padded image
+        ysub(array[int]): yrange of pixels in I corresponding to img0
+        xsub(array[int]): xrange of pixels in I corresponding to img0
 
     """
     Lpad = int(div * np.ceil(img0.shape[-2]/div) - img0.shape[-2])
@@ -287,23 +278,19 @@ def pad_image_ND(img0, div=16, extra = 1):
 
 def random_rotate_and_resize(X, Y=None, scale_range=1., xy = (224,224),
                              do_flip=True, rescale=None, unet=False):
-    """ augmentation by random rotation and resizing
-        X and Y are lists or arrays of length nimg, with dims channels x Ly x Lx (channels optional)
-        Args:
+    """ Augmentation by random rotation and resizing X and Y are lists or arrays of length nimg, with dims channels Ly x Lx
+    Args:
         X(list[float]): LIST of ND-arrays.list of image arrays of size [nchan x Ly x Lx] or [Ly x Lx]
-        Y(list[float]): LIST of ND-arrays,
-            list of image labels of size [nlabels x Ly x Lx] or [Ly x Lx]. The 1st channel
-            of Y is always nearest-neighbor interpolated (assumed to be masks or 0-1 representation).
-            If Y.shape[0]==3 and not unet, then the labels are assumed to be [cell probability, Y flow, X flow].
-            If unet, second channel is dist_to_bound.
+        Y(list[float]): LIST of ND-arrays, list of image labels of size [nlabels x Ly x Lx] or [Ly x Lx]. The 1st channel
+        of Y is always nearest-neighbor interpolated (assumed to be masks or 0-1 representation).
+        If Y.shape[0]==3 .The labels are assumed to be [cell probability, Y flow, X flow].
         scale_range(float): default 1.0.Range of resizing of images for augmentation. Images are resized by
             (1-scale_range/2) + scale_range * np.random.rand()
         xy(tuple[int]): default (224,224)).size of transformed images to return
         do_flip(bool):   default True.whether or not to flip images horizontally
         rescale(array[float]):default None.how much to resize images by before performing augmentations
         unet(bool):  default False
-
-        Returns:
+    Returns:
         imgi(array[float]): transformed images in array [nimg x nchan x xy[0] x xy[1]]
         lbl(array[float]): transformed labels in array [nimg x nchan x xy[0] x xy[1]]
         scale(array[float]): amount each image was resized by
@@ -381,12 +368,12 @@ def random_rotate_and_resize(X, Y=None, scale_range=1., xy = (224,224),
 
 
 def _X2zoom(img, X2=1):
-    """ zoom in image
+    """ Zoom in image
     Args:
-    img(array) : numpy array that's Ly x Lx
+        img(array) : numpy array that's Ly x Lx
 
     Returns:
-    img(array) : numpy array that's Ly x Lx
+        img(array) : numpy array that's Ly x Lx
 
     """
     ny,nx = img.shape[:2]
@@ -394,14 +381,13 @@ def _X2zoom(img, X2=1):
     return img
 
 def _image_resizer(img, resize=512, to_uint8=False):
-    """ resize image
+    """ Resize image
     Args:
-    img(array) : numpy array that's Ly x Lx
-    resize(int) : max size of image returned
-    to_uint8(bool) : convert image to uint8
-
+        img(array) : numpy array that's Ly x Lx
+        resize(int) : max size of image returned
+        to_uint8(bool) : convert image to uint8
     Returns:
-    img(array) : numpy array that's Ly x Lx, Ly,Lx<resize
+        img(array) : numpy array that's Ly x Lx, Ly,Lx<resize
     """
     ny,nx = img.shape[:2]
     if to_uint8:
