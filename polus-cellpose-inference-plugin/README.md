@@ -1,12 +1,12 @@
 # Cellpose 
-This plugin is an implementation of segmenting 2D/ 3D images using  pretrained models implemented by Cellpose.[Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1) 
+This plugin is an implementation of segmenting 2D/ 3D images using  pretrained models generated  by authors of Cellpose.[Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1) 
 is a generalist algorithm for cell and nucleus segmentation. Cellpose uses two major innovations: a reversible transformation 
 from training set masks to vector flows that can be predicted by a neural network, and a large segmented dataset of varied images of cells. 
  
 This plugin can predict of cells and segment images. The default diameter used for segmenting images is 30.Pass 0 as argument 
 if you want to run the regression model to predict the diameter.This plugin saves network predicted vector field in a zarr file.
 
-This plugin has been tested with CUDA 10.1 ,bfio:2.0.4 and run on GPu by default.Images are processed in tiles and plugin can process.
+This plugin has been tested with CUDA 10.1 ,bfio:2.0.4 and run on GPU by default.Images are processed in tiles and plugin can process.
 
 
 ## Building
@@ -21,7 +21,7 @@ To build the Docker image for the conversion plugin, run
 To run this pulled container locally 
 `docker run - -v {inpDir}:/opt/executables/input -v {outDir}:/opt/executables/output labshare/polus-cellpose-inference-plugin:{version} --inpDir /opt/executables/input --outDir /opt/executables/output`
 
-By default the model will use  cyto as pretrained model.
+By default, the model will use cyto as pretrained model.
 
 To use gpu add argument `--gpus {device no}`
 
