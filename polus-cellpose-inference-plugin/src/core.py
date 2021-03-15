@@ -1,8 +1,8 @@
 import os, logging
 import numpy as np
-import transforms, dynamics, utils, metrics
+import transforms
 import torch
-from torch import optim, nn
+
 from torch.utils import mkldnn as mkldnn_utils
 import resnet_torch
 

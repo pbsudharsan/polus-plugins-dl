@@ -3,10 +3,10 @@
 Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
 
 '''
-import os, sys, time, pathlib, logging
+import os, time, pathlib, logging
 import numpy as np
 from tqdm import trange
-from urllib.parse import urlparse
+
 import cv2
 import transforms, dynamics, utils
 from core import UnetModel, assign_device, convert_images, parse_model_string
@@ -16,36 +16,7 @@ logging.basicConfig(format='%(asctime)s - %(name)-8s - %(levelname)-8s - %(messa
 logger = logging.getLogger("model")
 logger.setLevel(logging.INFO)
 
-urls = [
-    'https://www.cellpose.org/models/cytotorch_0',
-    'https://www.cellpose.org/models/cytotorch_1',
-    'https://www.cellpose.org/models/cytotorch_2',
-    'https://www.cellpose.org/models/cytotorch_3',
-    'https://www.cellpose.org/models/size_cytotorch_0.npy',
-    'https://www.cellpose.org/models/nucleitorch_0',
-    'https://www.cellpose.org/models/nucleitorch_1',
-    'https://www.cellpose.org/models/nucleitorch_2',
-    'https://www.cellpose.org/models/nucleitorch_3',
-    'https://www.cellpose.org/models/size_nucleitorch_0.npy']
 
-
-def download_model_weights(urls=urls):
-    # cellpose directory
-    cp_dir = pathlib.Path.home().joinpath('.cellpose')
-    cp_dir.mkdir(exist_ok=True)
-    model_dir = cp_dir.joinpath('models')
-    model_dir.mkdir(exist_ok=True)
-
-    for url in urls:
-        parts = urlparse(url)
-        filename = os.path.basename(parts.path)
-        cached_file = os.path.join(model_dir, filename)
-        if not os.path.exists(cached_file):
-            sys.stderr.write('Downloading: "{}" to {}\n'.format(url, cached_file))
-            utils.download_url_to_file(url, cached_file, progress=True)
-
-
-download_model_weights()
 model_dir = pathlib.Path.home().joinpath('.cellpose', 'models')
 
 
@@ -173,8 +144,8 @@ class Cellpose():
                 diams, _ = self.sz.eval(x, channels=channels, invert=invert, batch_size=batch_size,
                                         augment=augment, tile=tile)
                 rescale = self.diam_mean / diams
-                logger.info('estimated cell diameters  in %0.2f sec' % (time.time() - tic))
-                print(' diameter(s) = ', diams)
+                logger.info('Estimated cell diameters  in %0.2f sec' % (time.time() - tic))
+                logger.info('Diameter(s) = {}'.format( diams))
             else:
                 if rescale is None:
                     rescale = np.ones(nimg, np.float32)

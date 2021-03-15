@@ -1,6 +1,6 @@
 {
     "name": "Cellpose-inference ",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "title": "Cellpose-inference  ",
     "description": "Semantic segmentation of cell/nuclei",
     "author": "Sudharsan Prativadi (sudharsan.prativadi@labshare.org)",
@@ -8,7 +8,7 @@
     "repository": "https://github.com/labshare/polus-plugins",
     "website": "https://ncats.nih.gov/preclinical/core/informatics",
     "citation": "Cellpose a generalist, deep learning-based segmentation algorithm which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments, https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1",
-    "containerId": "labshare/polus-cellpose-inference-plugin:0.3.1",
+    "containerId": "labshare/polus-cellpose-inference-plugin:0.3.2",
     "inputs": [
       {
         "name": "diameter",
@@ -23,7 +23,7 @@
         "required": true
       },
       {
-        "name": "pretrained_model",
+        "name": "pretrainedModel",
         "type": "enum",
         "description": "Choose cell/nuclei to segment",
         "options": {
@@ -35,7 +35,7 @@
           },
         "required": true
       },
-      {"name":"cpretrained_model" ,
+      {"name":"cpretrainedModel" ,
               "type": "tensorflowModel",
               "description":"Select the custom pretrained model for segmentation",
               "required": true
@@ -62,15 +62,15 @@
       },
 
       {
-        "key": "inputs.pretrained_model",
+        "key": "inputs.pretrainedModel",
         "title": "Model to use(Cyto/nuclei)",
         "description": "Object that needs to be segmented"
       },
       {
-        "key": "inputs.cpretrained_model",
+        "key": "inputs.cpretrainedModel",
         "title": "Pretrained Model of choice",
         "description": "Path to pretrained Model to run the images",
-        "condition": "model.inputs.pretrained_model=='custom'"
+        "condition": "model.inputs.pretrainedModel=='custom'"
       }
     ]
   }

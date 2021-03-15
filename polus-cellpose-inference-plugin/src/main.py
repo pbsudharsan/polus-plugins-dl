@@ -1,9 +1,54 @@
 from bfio import BioReader
-import argparse, logging, sys
+import argparse, logging, sys ,os
+from urllib.parse import urlparse
+from utils import download_url_to_file
 import numpy as np
 from pathlib import Path
 import zarr
 import models
+
+urls = [
+    'https://www.cellpose.org/models/cytotorch_0',
+    'https://www.cellpose.org/models/cytotorch_1',
+    'https://www.cellpose.org/models/cytotorch_2',
+    'https://www.cellpose.org/models/cytotorch_3',
+    'https://www.cellpose.org/models/size_cytotorch_0.npy',
+    'https://www.cellpose.org/models/nucleitorch_0',
+    'https://www.cellpose.org/models/nucleitorch_1',
+    'https://www.cellpose.org/models/nucleitorch_2',
+    'https://www.cellpose.org/models/nucleitorch_3',
+    'https://www.cellpose.org/models/size_nucleitorch_0.npy']
+
+
+def download_model_weights(pretrained_model,urls=urls):
+    """ Downloading model weights  based on segmentation
+    Args:
+        pretrained_model(str): Cyto/nuclei Segementation
+        urls(list): list of urls for model weights
+
+    """
+    # cellpose directory
+    start= 0
+    end=len(urls)
+    if pretrained_model=='cyto':
+        end+=4
+    else:
+        start+=5
+    urls=urls[start:end]
+    cp_dir = Path.home().joinpath('.cellpose')
+    cp_dir.mkdir(exist_ok=True)
+    model_dir = cp_dir.joinpath('models')
+    model_dir.mkdir(exist_ok=True)
+
+    for url in urls:
+        parts = urlparse(url)
+        filename = os.path.basename(parts.path)
+        cached_file = os.path.join(model_dir, filename)
+        if not os.path.exists(cached_file):
+            sys.stderr.write('Downloading: "{}" to {}\n'.format(url, cached_file))
+            download_url_to_file(url, cached_file, progress=True)
+
+
 
 def main():
     # Initialize the logger
@@ -19,7 +64,7 @@ def main():
     parser.add_argument('--diameter', dest='diameter', type=float,default=30.,help='Diameter', required=False)
     parser.add_argument('--inpDir', dest='inpDir', type=str,
                         help='Input image collection to be processed by this plugin', required=True)
-    parser.add_argument('--pretrained_model', dest='pretrained_model', type=str,
+    parser.add_argument('--pretrainedModel', dest='pretrainedmodel', type=str,default='cyto',
                         help='Filename pattern used to separate data', required=False)
 
     # Output arguments
@@ -33,7 +78,7 @@ def main():
         # switch to images folder if present
         inpDir = str(Path(args.inpDir).joinpath('images').absolute())
     logger.info('inpDir = {}'.format(inpDir))
-    pretrained_model = args.pretrained_model
+    pretrained_model = args.pretrainedmodel
     logger.info('pretrained_model = {}'.format(pretrained_model))
     outDir = args.outDir
     logger.info('outDir = {}'.format(outDir))
@@ -44,6 +89,7 @@ def main():
         # Get all file names in inpDir image collection
         inpDir_files = [f.name for f in Path(inpDir).iterdir() if f.is_file() and "".join(f.suffixes) == '.ome.tif']
         rescale = None
+
         if args.diameter == 0:
             diameter = None
             logger.info('Estimating diameter for each image')
@@ -51,10 +97,9 @@ def main():
             diameter = args.diameter
             logger.info(' Using diameter %0.2f for all images' % diameter)
 
-        if not pretrained_model:
-            logger.info('Running the images on Cyto model')
-            pretrained_model = 'cyto'
         if pretrained_model is 'cyto' or 'nuclei':
+             logger.info('Running the images on %s model'% str(pretrained_model))
+             download_model_weights(pretrained_model)
              model = models.Cellpose( model_type=pretrained_model)
         elif Path(pretrained_model).exists():
             model = models.CellposeModel( pretrained_model=pretrained_model)
@@ -70,7 +115,7 @@ def main():
             for f in inpDir_files:
                 # Loop through files in inpDir image collection and process
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
-                tile_size = min(1024,br.X)
+                tile_size = min(1080,br.X)
                 logger.info('Processing image %s ',f)
                 out_image=np.zeros((br.Z,br.X,br.Y,3)).astype(np.float32)
                 # Iterating through z slices
@@ -89,7 +134,7 @@ def main():
 
               # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)
-                init_cluster_1 = cluster.create_dataset('vector', shape=out_image.shape, data=out_image,chunks=(out_image.shape),dtype=prob.dtype)
+                init_cluster_1 = cluster.create_dataset('vector', shape=out_image.shape, data=out_image,chunks=(tile_size,tile_size,1,1,1),dtype=prob.dtype)
                 cluster.attrs['metadata'] = str(br.metadata)
                 del prob, out_image
 
