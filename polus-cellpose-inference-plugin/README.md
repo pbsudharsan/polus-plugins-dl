@@ -1,12 +1,15 @@
-# Cellpose 
-This plugin is an implementation of segmenting 2D/ 3D images using  pretrained models generated  by authors of Cellpose.[Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1) 
-is a generalist algorithm for cell and nucleus segmentation. Cellpose uses two major innovations: a reversible transformation 
-from training set masks to vector flows that can be predicted by a neural network, and a large segmented dataset of varied images of cells. 
- 
-This plugin can predict of cells and segment images. The default diameter used for segmenting images is 30.Pass 0 as parameter for diameter argument 
-if you want to run the regression model to predict the diameter.This plugin saves network predicted vector field in a zarr file.
+# Cellpose-inference-plugin 
+* This plugin is an implementation of segmenting cyto/nuclei 2D/ 3D images using  pretrained models generated  by authors of Cellpose.[Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1) 
+is a generalist algorithm for cell and nucleus segmentation.
+  
+* Cellpose uses two major innovations: a reversible transformation from training set masks to vector flows that can be predicted by a neural network, and a large segmented dataset of varied images of cells. 
 
-This plugin has been tested with CUDA 10.1 ,bfio:2.0.4 and run on GPU by default.Images are processed in tiles and plugin can process.
+* The model was trained on images consisting of fluorescent images of cultured neurons with cytoplasmic , nuclear stains ,BBBC020 and fluorescent images of different  . 
+
+* The default diameter used for segmenting images is 30.Pass 0 as parameter for diameter argument 
+  If you want to run the regression model to predict the diameter.
+  
+* This plugin saves network predicted vector field and cell probabilities in a zarr file and  has been tested with CUDA 10.1 ,bfio:2.0.4 and run on GPU by default.
 
 
 ## Building

@@ -1,76 +1,76 @@
-{
-    "name": "Cellpose-inference ",
-    "version": "0.3.2",
-    "title": "Cellpose-inference  ",
-    "description": "Semantic segmentation of cell/nuclei",
-    "author": "Sudharsan Prativadi (sudharsan.prativadi@labshare.org)",
-    "institution": "National Center for Advancing Translational Sciences, National Institutes of Health",
-    "repository": "https://github.com/labshare/polus-plugins",
-    "website": "https://ncats.nih.gov/preclinical/core/informatics",
-    "citation": "Cellpose a generalist, deep learning-based segmentation algorithm which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments, https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1",
-    "containerId": "labshare/polus-cellpose-inference-plugin:0.3.2",
-    "inputs": [
-      {
-        "name": "diameter",
-        "type": "integer",
-        "description": "Default Diameter  is 30 enter 0   to  use cellpose to calculate the diameter or value of  choice",
-        "required": false
-      },
-      {
-        "name": "inpDir",
-        "type": "collection",
-        "description": "Input image collection to be processed by this plugin",
-        "required": true
-      },
-      {
-        "name": "pretrainedModel",
-        "type": "enum",
-        "description": "Choose cell/nuclei to segment",
-        "options": {
-	      "values": [
-	      		"cyto",
-			 "nuclei",
-            "custom"
-             ]
-          },
-        "required": true
-      },
-      {"name":"cpretrainedModel" ,
-              "type": "tensorflowModel",
-              "description":"Select the custom pretrained model for segmentation",
-              "required": true
-            }
-    ],
-    "outputs": [
-      {
-        "name": "outDir",
-        "type": "genericData",
-        "description": "Output collection"
-      }
-    ],
-    "ui": [
-      {
-        "key": "inputs.inpDir",
-        "title": "Input collection",
-        "description": "Input image collection to be processed by this plugin"
-      },
+  {
+      "name": "Cellpose-inference ",
+      "version": "0.3.4",
+      "title": "Cellpose-inference  ",
+      "description": "Semantic segmentation of cell/nuclei",
+      "author": "Sudharsan Prativadi (sudharsan.prativadi@labshare.org)",
+      "institution": "National Center for Advancing Translational Sciences, National Institutes of Health",
+      "repository": "https://github.com/labshare/polus-plugins",
+      "website": "https://ncats.nih.gov/preclinical/core/informatics",
+      "citation": "Cellpose a generalist, deep learning-based segmentation algorithm which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments, https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1",
+      "containerId": "labshare/polus-cellpose-inference-plugin:0.3.4",
+      "inputs": [
+        {
+          "name": "diameter",
+          "type": "integer",
+          "description": "Default Diameter  is 30 enter 0   to  use cellpose to calculate the diameter or value of  choice",
+          "required": false
+        },
+        {
+          "name": "inpDir",
+          "type": "collection",
+          "description": "Input image collection to be processed by this plugin",
+          "required": true
+        },
+        {
+          "name": "pretrainedModel",
+          "type": "enum",
+          "description": "Choose cell/nuclei to segment",
+          "options": {
+            "values": [
+                  "cyto",
+               "nuclei",
+              "custom"
+               ]
+            },
+          "required": true
+        },
+        {"name":"cpretrainedModel" ,
+                "type": "tensorflowModel",
+                "description":"Select the custom pretrained model for segmentation",
+                "required": true
+              }
+      ],
+      "outputs": [
+        {
+          "name": "outDir",
+          "type": "genericData",
+          "description": "Output collection"
+        }
+      ],
+      "ui": [
+        {
+          "key": "inputs.inpDir",
+          "title": "Input collection",
+          "description": "Input image collection to be processed by this plugin"
+        },
 
-      {
-        "key": "inputs.diameter",
-        "title": "Diameter ",
-        "description": "Default value is 30.Enter 0 for the plugin to predict diameter"
-      },
+        {
+          "key": "inputs.diameter",
+          "title": "Diameter ",
+          "description": "Default value is 30.Enter 0 for the plugin to predict diameter"
+        },
 
-      {
-        "key": "inputs.pretrainedModel",
-        "title": "Model to use(Cyto/nuclei)",
-        "description": "Object that needs to be segmented"
-      },
-      {
-        "key": "inputs.cpretrainedModel",
-        "title": "Pretrained Model of choice",
-        "description": "Path to pretrained Model to run the images",
-        "condition": "model.inputs.pretrainedModel=='custom'"
-      }
-    ]
-  }
+        {
+          "key": "inputs.pretrainedModel",
+          "title": "Model to use(Cyto/nuclei)",
+          "description": "Object that needs to be segmented"
+        },
+        {
+          "key": "inputs.cpretrainedModel",
+          "title": "Pretrained Model of choice",
+          "description": "Path to pretrained Model to run the images",
+          "condition": "model.inputs.pretrainedModel=='custom'"
+        }
+      ]
+    }

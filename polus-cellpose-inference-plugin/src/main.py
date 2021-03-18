@@ -64,7 +64,7 @@ def main():
     parser.add_argument('--diameter', dest='diameter', type=float,default=30.,help='Diameter', required=False)
     parser.add_argument('--inpDir', dest='inpDir', type=str,
                         help='Input image collection to be processed by this plugin', required=True)
-    parser.add_argument('--pretrainedModel', dest='pretrainedmodel', type=str,default='cyto',
+    parser.add_argument('--pretrainedModel', dest='pretrainedModel', type=str,default='cyto',
                         help='Filename pattern used to separate data', required=False)
 
     # Output arguments
@@ -78,7 +78,7 @@ def main():
         # switch to images folder if present
         inpDir = str(Path(args.inpDir).joinpath('images').absolute())
     logger.info('inpDir = {}'.format(inpDir))
-    pretrained_model = args.pretrainedmodel
+    pretrained_model = args.pretrainedModel
     logger.info('pretrained_model = {}'.format(pretrained_model))
     outDir = args.outDir
     logger.info('outDir = {}'.format(outDir))
@@ -125,8 +125,8 @@ def main():
                         x_max = min([br.X, x + tile_size])
                         for y in range(0, br.Y, tile_size):
                             y_max = min([br.Y, y + tile_size])
-                            test = (br[y:y_max, x:x_max,z:z+1, 0,0]).squeeze()
-                            prob = model.eval(test, diameter=diameter,rescale=rescale)
+                            tile_img = (br[y:y_max, x:x_max,z:z+1, 0,0]).squeeze()
+                            prob = model.eval(tile_img, diameter=diameter,rescale=rescale)
                             out_image[z:z+1,y:y_max, x:x_max,] = prob[np.newaxis,]
 
                 out_image= out_image[...,np.newaxis]
