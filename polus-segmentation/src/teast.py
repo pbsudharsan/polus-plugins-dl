@@ -3,7 +3,7 @@ from  bfio import  BioReader,BioWriter
 import numpy as np
 
 inpDir='/home/sudharsan/Desktop/work/test/training/input'
-outDir='/home/sudharsan/Desktop/work/test/training/split'
+outDir='/home/sudharsan/Desktop/work/test/training/help'
 #root = zarr.open('/home/sudharsan/Desktop/work/ome/location.zarr/', mode='r')
 
 
@@ -15,8 +15,8 @@ for f in image_names:
     img = br.read().squeeze()
     for z in range(br.Z):
         out=img[:,:,z:z+1]
-        bw = BioWriter(file_path=Path(outDir).joinpath(str(f)), backend='python', metadata=br.metadata)
-  #      print(out[:,:,:,np.newaxis,np.newaxis].shape)
-        bw.write(out[:,:,:,np.newaxis,np.newaxis])
-
+        mask_name = str(str(f).split('.', 1)[0] +'_' + str(z+1) +'.'+ str(f).split('.', 1)[1])
+        with BioWriter(file_path=Path(outDir).joinpath(str(mask_name)), backend='python', metadata=br.metadata) as bw:
+            bw.z = 1
+            bw[:] = out[:,:,:,np.newaxis,np.newaxis]
 
