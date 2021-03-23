@@ -216,6 +216,6 @@ class CellposeModel(UnetModel):
                                      test_data, test_labels,
                                      pretrained_model, save_path, save_every,
                                      learning_rate, n_epochs, momentum, weight_decay, batch_size, rescale)
-        print('sdoinfs')
+
         self.pretrained_model = model_path
         return model_path

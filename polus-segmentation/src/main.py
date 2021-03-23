@@ -1,24 +1,33 @@
 from  bfio import  BioReader
-
 import argparse, logging, sys,random
 import numpy as np
 from pathlib import Path
 import os
 import zarr
-import models,utils
+import models
 
 def read (inpDir,flow_path,image_names):
     flow_list=[]
     image_all=[]
     root = zarr.open(str(Path(flow_path).joinpath('flow.zarr')), mode='r')
+
     for f in image_names:
         br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
         mask_name= str(str(f).split('.',1)[0]+'_mask.'+str(f).split('.',1)[1])
+
         if mask_name not in root.keys():
             print('%s not present in zarr file'%mask_name)
         image_all.append(np.squeeze(br.read()))
-        flow_list.append(root[mask_name]['flow'])
-     #   print(root[mask_name]['flow'][0,...].shape)
+
+        lbl=np.squeeze(root[mask_name]['lbl'])
+        vec=np.squeeze(root[mask_name]['vector'])
+        print('drfgdf', lbl[:,:,np.newaxis].shape,vec.shape)
+        cont=np.concatenate((lbl[:,:,np.newaxis],vec), axis=2)
+
+        print(cont.shape,'test')
+  #      flow_list.append(np.squeeze(root[mask_name]['vector']))
+        flow_list.append(cont)
+
     return image_all,flow_list
 
 
@@ -35,8 +44,8 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(prog='main', description='Cellpose parameters')
     
     # Input arguments
-    parser.add_argument('--unet', required=False,
-                        default=0, type=int, help='run standard unet instead of cellpose flow output')
+    # parser.add_argument('--unet', required=False,
+    #                     default=0, type=int, help='run standard unet instead of cellpose flow output')
     parser.add_argument('--diameter', dest='diameter', type=float,default=30.,help='Diameter', required=False)
     parser.add_argument('--inpDir', dest='inpDir', type=str,
                         help='Input image collection to be processed by this plugin', required=True)
@@ -114,7 +123,6 @@ if __name__=="__main__":
         args.style_on = 1
         args.concatenation = 0
 
-
     model = models.CellposeModel(pretrained_model=cpmodel_path,diam_mean=szmean,residual_on=args.residual_on,style_on=args.style_on,concatenation=args.concatenation)
     # Surround with try/finally for proper error catching
     try:
@@ -125,7 +133,8 @@ if __name__=="__main__":
        # channels = [args.chan, args.chan2]
         channels =[0,0]
 
-        image_names = [f.name for f in Path(inpDir).iterdir() if f.is_file() and "".join(f.suffixes) == '.tif'  ]
+        image_names = [f.name for f in Path(inpDir).iterdir() if f.is_file() and "".join(f.suffixes) == '.ome.tif'  ]
+
         random.shuffle(image_names)
         idx = int(train_fraction * len(image_names))
         train_img_names = image_names[0:idx]
@@ -140,7 +149,9 @@ if __name__=="__main__":
                 raise FileExistsError()
 
             # train data
+
             train_images,train_labels = read(inpDir,flow_path,train_img_names)
+            print(len(train_images),len(train_labels))
             # test data
             test_images,test_labels  = read(inpDir,flow_path,test_img_names)
 

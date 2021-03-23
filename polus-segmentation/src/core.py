@@ -768,13 +768,7 @@ olinke
             train_loss = loss.item()
             self.optimizer.step()
             train_loss *= len(x)
-        else:
-            with mx.autograd.record():
-                y, style = self.net(X)
-                loss = self.loss_fn(lbl, y)
-            loss.backward()
-            train_loss = nd.sum(loss).asscalar()
-            self.optimizer.step(x.shape[0])
+
         return train_loss
 
     def _test_eval(self, x, lbl):
@@ -785,42 +779,32 @@ olinke
             loss = self.loss_fn(lbl, y)
             test_loss = loss.item()
             test_loss *= len(x)
-        else:
-            y, style = self.net(X)
-            loss = self.loss_fn(lbl, y)
-            test_loss = nd.sum(loss).asnumpy()
+
         return test_loss
 
     def _set_optimizer(self, learning_rate, momentum, weight_decay):
         if self.torch:
             self.optimizer = optim.SGD(self.net.parameters(), lr=learning_rate,
                                        momentum=momentum, weight_decay=weight_decay)
-        else:
-            self.optimizer = gluon.Trainer(self.net.collect_params(), 'sgd', {'learning_rate': learning_rate,
-                                                                              'momentum': momentum, 'wd': weight_decay})
+
 
     def _set_learning_rate(self, lr):
         if self.torch:
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] = lr
-        else:
-            self.optimizer.set_learning_rate(lr)
+
 
     def _set_criterion(self):
         if self.unet:
             if self.torch:
-                print('wasdasd')
           #      criterion = nn.SoftmaxCrossEntropyLoss(axis=1)
                 criterion = nn.CrossEntropyLoss()
-            else:
-                criterion = gluon.loss.SoftmaxCrossEntropyLoss(axis=1)
+
         else:
             if self.torch:
                 self.criterion = nn.MSELoss(reduction='mean')
                 self.criterion2 = nn.BCEWithLogitsLoss(reduction='mean')
-            else:
-                self.criterion = gluon.loss.L2Loss()
-                self.criterion2 = gluon.loss.SigmoidBinaryCrossEntropyLoss()
+
 
     def _train_net(self, train_data, train_labels,
                    test_data=None, test_labels=None,
@@ -835,7 +819,7 @@ olinke
         self.batch_size = batch_size
 
         self._set_optimizer(self.learning_rate, momentum, weight_decay)
-        print('working')
+
         self._set_criterion()
 
         nimg = len(train_data)
@@ -908,9 +892,8 @@ olinke
                 # tesfsdfs (8, 2, 224, 224) (8, 3, 224, 224) (12,)
               #      lbl[:, 1] /= train_labels[:, np.newaxis, np.newaxis] ** 2
                     lbl[:, 1] /= diam_train[:8, np.newaxis, np.newaxis]** 2
-                print('tesfsdfs',imgi.shape,lbl.shape,diam_train.shape)
+
                 train_loss = self._train_step(imgi, lbl)
-                print('tesfsdfs')
                 lavg += train_loss
                 nsum += len(imgi)
 
