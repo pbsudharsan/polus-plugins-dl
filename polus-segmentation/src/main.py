@@ -13,7 +13,7 @@ def read (inpDir,flow_path,image_names):
 
     for f in image_names:
         br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
-        mask_name= str(str(f).split('.',1)[0]+'_mask.'+str(f).split('.',1)[1])
+        mask_name= str(str(f).split('.',1)[0]+'.'+str(f).split('.',1)[1])
 
         if mask_name not in root.keys():
             print('%s not present in zarr file'%mask_name)
@@ -21,10 +21,10 @@ def read (inpDir,flow_path,image_names):
 
         lbl=np.squeeze(root[mask_name]['lbl'])
         vec=np.squeeze(root[mask_name]['vector'])
-        print('drfgdf', lbl[:,:,np.newaxis].shape,vec.shape)
+      #  print('drfgdf', lbl[:,:,np.newaxis].shape,vec.shape)
         cont=np.concatenate((lbl[:,:,np.newaxis],vec), axis=2)
-
-        print(cont.shape,'test')
+        cont=cont.transpose((2,0,1))
+  #      print(cont.shape,'test')
   #      flow_list.append(np.squeeze(root[mask_name]['vector']))
         flow_list.append(cont)
 
@@ -55,8 +55,8 @@ if __name__=="__main__":
                         help='Filename pattern used to separate data', required=False)
     parser.add_argument('--flow_path',help='Flow path should be a zarr file', type=str, required=True)
     parser.add_argument('--train_size', action='store_true', help='train size network at end of training')
-    parser.add_argument('--test_dir', required=False,
-                        default=[], type=str, help='folder containing test data (optional)')
+    # parser.add_argument('--test_dir', required=False,
+    #                     default=[], type=str, help='folder containing test data (optional)')
     parser.add_argument('--learning_rate', required=False,
                         default=0.2, type=float, help='learning rate')
     parser.add_argument('--n_epochs', required=False,
@@ -102,23 +102,23 @@ if __name__=="__main__":
             szmean = 30.
         else:
             szmean = 17.
-    else:
+    elif pretrained_model is not None:
         cpmodel_path = os.fspath(pretrained_model)
         szmean = 30
 
-    if  not Path(cpmodel_path).exists():
+    if pretrained_model is  None or not Path(cpmodel_path).exists():
         cpmodel_path = False
-        print('>>>> training from scratch')
+        logger.info('Training from scratch')
         if diameter == 0:
             rescale = False
-            print('>>>> median diameter set to 0 => no rescaling during training')
+            logger.info('Median diameter set to 0 => no rescaling during training')
         else:
             rescale = True
             szmean = diameter
     else:
         rescale = True
         diameter = szmean
-        print('>>>> pretrained model %s is being used' % cpmodel_path)
+        logger.info('Pretrained model %s is being used' % cpmodel_path)
         args.residual_on = 1
         args.style_on = 1
         args.concatenation = 0

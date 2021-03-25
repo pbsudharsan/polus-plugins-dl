@@ -119,7 +119,6 @@ class CellposeModel(UnetModel):
                                                                                 ostr[concatenation])
 
 
-
     def loss_fn(self, lbl, y):
         """ loss function between true labels lbl and prediction y """
 

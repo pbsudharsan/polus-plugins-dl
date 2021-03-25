@@ -680,7 +680,7 @@ olinke
                                                                                                    test_data,
                                                                                                    test_labels,
                                                                                                    channels, normalize)
-        print(train_labels[1].ndim,'tests',nimg)
+
         # add dist_to_bound to labels
         # if self.nclasses == 3:
         #     print('atsdf')
@@ -705,7 +705,7 @@ olinke
         # val_classes = train_labels[::8]
         # val_labels = train_labels[::8]
         # del train_data[::8], train_labels[::8], train_labels[::8]
-        print('aodfsdof',train_labels[1].ndim)
+#        print('aodfsdof',train_labels[1].ndim)
         model_path = self._train_net(train_data, train_labels,
                                      test_data, test_labels,
                                      pretrained_model, save_path, save_every,
@@ -887,11 +887,11 @@ olinke
                     [train_data[i] for i in inds], Y=[train_labels[i][1:] for i in inds],
                     rescale=rsc, scale_range=scale_range, unet=self.unet)
 
-                if self.unet and lbl.shape[1] > 1 and rescale:
-        ##            print(imgi.shape,diam_train[:8, np.newaxis, np.newaxis] .shape,lbl[:,1].shape)
-                # tesfsdfs (8, 2, 224, 224) (8, 3, 224, 224) (12,)
-              #      lbl[:, 1] /= train_labels[:, np.newaxis, np.newaxis] ** 2
-                    lbl[:, 1] /= diam_train[:8, np.newaxis, np.newaxis]** 2
+        #         if self.unet and lbl.shape[1] > 1 and rescale:
+        # ##            print(imgi.shape,diam_train[:8, np.newaxis, np.newaxis] .shape,lbl[:,1].shape)
+        #         # tesfsdfs (8, 2, 224, 224) (8, 3, 224, 224) (12,)
+        #       #      lbl[:, 1] /= train_labels[:, np.newaxis, np.newaxis] ** 2
+        #             lbl[:, 1] /= diam_train[:8, np.newaxis, np.newaxis]** 2
 
                 train_loss = self._train_step(imgi, lbl)
                 lavg += train_loss
