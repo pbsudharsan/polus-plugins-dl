@@ -115,7 +115,7 @@ def main():
             for f in inpDir_files:
                 # Loop through files in inpDir image collection and process
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
-                tile_size = min(1080,br.X)
+                tile_size = min(512,br.X)
                 logger.info('Processing image %s ',f)
                 out_image=np.zeros((br.Z,br.X,br.Y,3)).astype(np.float32)
                 # Iterating through z slices
@@ -126,9 +126,10 @@ def main():
                         for y in range(0, br.Y, tile_size):
                             y_max = min([br.Y, y + tile_size])
                             tile_img = (br[y:y_max, x:x_max,z:z+1, 0,0]).squeeze()
+                            logger.info('Calculating flows on slice %d tile(y,x) %d :%d %d:%d ',z,y,y_max,x,x_max)
                             prob = model.eval(tile_img, diameter=diameter,rescale=rescale)
                             out_image[z:z+1,y:y_max, x:x_max,] = prob[np.newaxis,]
-
+                logger.info('Shaping array as per ome format')
                 out_image= out_image[...,np.newaxis]
                 out_image=out_image.transpose((1,2,0,3,4)).astype(np.float32)
 
