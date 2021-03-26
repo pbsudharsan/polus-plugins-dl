@@ -115,9 +115,15 @@ def main():
             for f in inpDir_files:
                 # Loop through files in inpDir image collection and process
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
-                tile_size = min(512,br.X)
+                tile_size = min(1024,br.X)
                 logger.info('Processing image %s ',f)
-                out_image=np.zeros((br.Z,br.X,br.Y,3)).astype(np.float32)
+           #     out_image=np.zeros((br.Z,br.X,br.Y,3)).astype(np.float32)
+                out_image = np.zeros((1, tile_size, tile_size, 3)).astype(np.float32)
+                # Saving pixel locations and probablity in a zarr file
+                cluster = root.create_group(f)
+                init_cluster_1 = cluster.create_dataset('vector', shape=(br.Y,br.X,br.Z,3,1),
+                                                        chunks=(tile_size, tile_size, 1, 1, 1), dtype=out_image.dtype)
+                cluster.attrs['metadata'] = str(br.metadata)
                 # Iterating through z slices
                 for z in range(br.Z):
                     # Iterating based on tile size
@@ -128,16 +134,17 @@ def main():
                             tile_img = (br[y:y_max, x:x_max,z:z+1, 0,0]).squeeze()
                             logger.info('Calculating flows on slice %d tile(y,x) %d :%d %d:%d ',z,y,y_max,x,x_max)
                             prob = model.eval(tile_img, diameter=diameter,rescale=rescale)
-                            out_image[z:z+1,y:y_max, x:x_max,] = prob[np.newaxis,]
-                logger.info('Shaping array as per ome format')
-                out_image= out_image[...,np.newaxis]
-                out_image=out_image.transpose((1,2,0,3,4)).astype(np.float32)
+                            prob=prob[np.newaxis,]
+     #                       out_image[z:z+1,y:y_max, x:x_max,] = prob[np.newaxis,]
+                            logger.info('Shaping array as per ome format')
+                            out_image= out_image[...,np.newaxis]
+                            out_image=out_image.transpose((1,2,0,3,4)).astype(np.float32)
+                            print(init_cluster_1.shape,out_image.shape)
+                            name=str(f)+'vector'
+                            init_cluster_1[name]=out_image
 
-              # Saving pixel locations and probablity in a zarr file
-                cluster = root.create_group(f)
-                init_cluster_1 = cluster.create_dataset('vector', shape=out_image.shape, data=out_image,chunks=(tile_size,tile_size,1,1,1),dtype=prob.dtype)
-                cluster.attrs['metadata'] = str(br.metadata)
-                del prob, out_image
+
+                            del prob, out_image
 
         except FileExistsError:
             logger.info('Zarr file exists. Delete the existing file %r' % str((Path(outDir).joinpath('location.zarr'))))
