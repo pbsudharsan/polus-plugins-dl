@@ -115,9 +115,8 @@ def main():
             for f in inpDir_files:
                 # Loop through files in inpDir image collection and process
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
-                tile_size = min(1080,br.X)
+                tile_size = min(1024,br.X)
                 logger.info('Processing image %s ',f)
-           #     out_image=np.zeros((br.Z,br.X,br.Y,3)).astype(np.float32)
                 out_image = np.zeros((1, tile_size, tile_size, 3)).astype(np.float32)
                 # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)
