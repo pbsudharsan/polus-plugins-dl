@@ -2,7 +2,7 @@ import os, sys, time, shutil, tempfile, datetime, pathlib, subprocess
 import numpy as np
 from tqdm import trange, tqdm
 import cv2
-
+from collections import  deque
 import transforms,  utils, metrics
 import torch
 from torch import optim, nn
@@ -810,7 +810,7 @@ olinke
                    test_data=None, test_labels=None,
                    pretrained_model=None, save_path=None, save_every=100,
                    learning_rate=0.2, n_epochs=500, momentum=0.9, weight_decay=0.00001,
-                   batch_size=8, rescale=True, netstr='cellpose'):
+                   batch_size=8, rescale=True, netstr='cellpose',early_stopping=5):
         """ train function uses loss function self.loss_fn """
 
         d = datetime.datetime.now()
@@ -834,7 +834,7 @@ olinke
             scale_range = 0.5
         else:
             scale_range = 1.0
-
+        loss_history = deque(maxlen=early_stopping + 1)
         nchan = train_data[0].shape[0]
         print('>>>> training network with %d channel input <<<<' % nchan)
         print('>>>> saving every %d epochs' % save_every)
@@ -887,12 +887,6 @@ olinke
                     [train_data[i] for i in inds], Y=[train_labels[i][1:] for i in inds],
                     rescale=rsc, scale_range=scale_range, unet=self.unet)
 
-        #         if self.unet and lbl.shape[1] > 1 and rescale:
-        # ##            print(imgi.shape,diam_train[:8, np.newaxis, np.newaxis] .shape,lbl[:,1].shape)
-        #         # tesfsdfs (8, 2, 224, 224) (8, 3, 224, 224) (12,)
-        #       #      lbl[:, 1] /= train_labels[:, np.newaxis, np.newaxis] ** 2
-        #             lbl[:, 1] /= diam_train[:8, np.newaxis, np.newaxis]** 2
-
                 train_loss = self._train_step(imgi, lbl)
                 lavg += train_loss
                 nsum += len(imgi)
@@ -914,6 +908,13 @@ olinke
                             lbl[:, 1] *= scale[0] ** 2
 
                         test_loss = self._test_eval(imgi, lbl)
+                        loss_history.append(test_loss)
+                        print(loss_history)
+                        if len(loss_history) > early_stopping:
+                            if loss_history.popleft() < min(loss_history):
+                                print(f'\nEarly stopping. No validation loss '
+                                      f'improvement in {early_stopping} epochs.')
+                                break
                         lavgt += test_loss
                         nsum += len(imgi)
 
