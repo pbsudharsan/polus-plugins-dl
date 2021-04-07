@@ -117,11 +117,11 @@ def main():
                 br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
                 tile_size = min(1024,br.X)
                 logger.info('Processing image %s ',f)
-                out_image = np.zeros((1, tile_size, tile_size, 3)).astype(np.float32)
+
                 # Saving pixel locations and probablity in a zarr file
                 cluster = root.create_group(f)
                 init_cluster_1 = cluster.create_dataset('vector', shape=(br.Y,br.X,br.Z,3,1),chunks=(tile_size,tile_size,1,3,1) ,
-                                                         dtype=out_image.dtype)
+                                                         dtype=np.float32)
                 cluster.attrs['metadata'] = str(br.metadata)
                 # Iterating through z slices
                 for z in range(br.Z):
@@ -131,6 +131,7 @@ def main():
                         for y in range(0, br.Y, tile_size):
                             y_max = min([br.Y, y + tile_size])
                             tile_img = (br[y:y_max, x:x_max,z:z+1, 0,0]).squeeze()
+                            out_image = np.zeros((1, tile_img.shape[0], tile_img.shape[1], 3,1)).astype(np.float32)
                             logger.info('Calculating flows on slice %d tile(y,x) %d :%d %d:%d ',z,y,y_max,x,x_max)
                             prob = model.eval(tile_img, diameter=diameter,rescale=rescale)
                             prob=prob[np.newaxis,]
