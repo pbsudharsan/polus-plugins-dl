@@ -1,13 +1,8 @@
-import os, sys, time, shutil, tempfile, datetime, pathlib, subprocess
+import os, sys, pathlib
 import numpy as np
-from tqdm import trange, tqdm
 from urllib.parse import urlparse
-import tempfile
-
-from scipy.ndimage import median_filter
-import cv2
-import transforms, dynamics, utils, metrics, core
-from core import UnetModel, assign_device, check_mkl, use_gpu, convert_images, parse_model_string
+import transforms, utils
+from core import UnetModel, assign_device, parse_model_string
 
 urls = [
         'https://www.cellpose.org/models/cytotorch_0',
@@ -201,15 +196,6 @@ class CellposeModel(UnetModel):
                                                                                                    test_data,
                                                                                                    test_labels,
                                                                                                    channels, normalize)
-
-        # check if train_labels have flows
-      #  train_flows = dynamics.labels_to_flows(train_labels, files=train_files)
-      #   train_flows =[]
-      #   train_flows - train_labels
-        # if run_test:
-        #     test_flows = dynamics.labels_to_flows(test_labels, files=test_files)
-        # else:
-        #     test_flows = None
 
         model_path = self._train_net(train_data, train_labels,
                                      test_data, test_labels,

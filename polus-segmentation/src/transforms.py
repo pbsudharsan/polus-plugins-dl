@@ -1,4 +1,4 @@
-# from suite2p import nonrigid
+
 import numpy as np
 import warnings
 import cv2

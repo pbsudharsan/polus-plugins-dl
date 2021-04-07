@@ -1,6 +1,6 @@
 {
     "name": "Cellpose-inference ",
-    "version": "0.1.9",
+    "version": "0.1.1",
     "title": "Cellpose-inference  ",
     "description": "Semantic segmentation of cell/nuclei",
     "author": "Sudharsan (sudharsan.prativadi@labshare.org)",
