@@ -1,3 +1,8 @@
+'''
+
+Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+
+'''
 import numpy as np
 import dynamics
 

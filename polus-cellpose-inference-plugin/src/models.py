@@ -6,7 +6,6 @@ Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tr
 import os, time, pathlib, logging
 import numpy as np
 from tqdm import trange
-
 import cv2
 import transforms, dynamics, utils
 from core import UnetModel, assign_device, convert_images, parse_model_string
@@ -21,7 +20,13 @@ model_dir = pathlib.Path.home().joinpath('.cellpose', 'models')
 
 
 def dx_to_circ(dP):
-    """ dP is 2 x Y x X => 'optic' flow representation """
+    """
+    Args:
+        dP (array) : 'optic' flow representation  2 x Y x X
+    Returns:
+        flow(array):vector field.
+
+    """
     sc = max(np.percentile(dP[0], 99), np.percentile(dP[0], 1))
     Y = np.clip(dP[0] / sc, -1, 1)
     sc = max(np.percentile(dP[1], 99), np.percentile(dP[1], 1))
@@ -36,16 +41,16 @@ def dx_to_circ(dP):
 
 
 class Cellpose():
-    """ main model which combines SizeModel and CellposeModel
-
+    """ Main model which combines SizeModel and CellposeModel
 
     """
 
     def __init__(self, model_type='cyto', net_avg=True, torch=True):
-        """ Args:
-        model_type(str):optional, default 'cyto','cyto'=cytoplasm model; 'nuclei'=nucleus model
-        net_avg(bool): optional,default True.Loads the 4 built-in networks and averages them if True, loads one network if False
-        torch(bool): optional, default False.Run model using torch if available
+        """
+        Args:
+            model_type(str):optional, default 'cyto','cyto'=cytoplasm model; 'nuclei'=nucleus model
+            net_avg(bool): optional,default True.Loads the 4 built-in networks and averages them if True, loads one network if False
+            torch(bool): optional, default False.Run model using torch if available
 
          """
         super(Cellpose, self).__init__()
@@ -80,40 +85,34 @@ class Cellpose():
              stitch_threshold=0.0, rescale=None):
         """ run cellpose and get masks
         Args:
-        x(array): list or array of images.can be list of 2D/3D images, or array of 2D/3D images, or 4D image array
-        batch_size(int): optional, default 8.Number of 224x224 patches to run simultaneously on the GPU
-        Can make smaller or bigger depending on GPU memory usage.
-        channels(list): List of channels, either of length 2 or of length number of images by 2.
-            First element of list is the channel to segment (0=grayscale, 1=red, 2=blue, 3=green).
-            Second element of list is the optional nuclear channel (0=none, 1=red, 2=blue, 3=green).
-            For instance, to segment grayscale images, input [0,0]. To segment images with cells
-            in green and nuclei in blue, input [2,3]. To segment one grayscale image and one
-            image with cells in green and nuclei in blue, input [[0,0], [2,3]].
-        invert(bool):Invert image pixel intensity before running network (if True, image is also normalized)
-        normalize(bool):Default True.normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel
-        diameter(float):default 30.if set to None, then diameter is automatically estimated if size model is loaded
-        anisotropy(float):for 3D segmentation, optional rescaling factor (e.g. set to 2.0 if Z is sampled half as dense as X or Y)
-        net_avg(bool): optional,default True.runs the 4 built-in networks and averages them if True, runs one network if False
-        augment(bool): optional, default False.tiles image with overlapping tiles and flips overlapped regions to augment
-        tile(bool): optional,default True.tiles image to ensure GPU/CPU memory usage limited
-        tile_overlap(float): optional, default 0.1.fraction of overlap of tiles when computing flows
-        resample(bool): optional, default False.run dynamics at original image size (will be slower but create more accurate boundaries)
-        interp(bool): optional, default True.interpolate during 2D dynamics
-        flow_threshold(float): optional, default 0.4.flow error threshold (all cells with errors below threshold are kept)
-        cellprob_threshold(float): optional, default 0.0.cell probability threshold (all pixels with prob above threshold kept for masks)
-        min_size(int): optional, default 15.minimum number of pixels per mask, can turn off with -1
-        stitch_threshold(float): optional, default 0.0.if stitch_threshold>0.0  and equal image sizes, masks are stitched in 3D to return volume segmentation
-        rescale(float): optional, default None if diameter is set to None, and rescale is not None, then rescale is used instead of diameter for resizing image
+            x(array): list or array of images.can be list of 2D/3D images, or array of 2D/3D images, or 4D image array
+            batch_size(int): optional, default 8.Number of 224x224 patches to run simultaneously on the GPU
+                            Can make smaller or bigger depending on GPU memory usage.
+            channels(list): List of channels, either of length 2 or of length number of images by 2.
+            invert(bool):Invert image pixel intensity before running network (if True, image is also normalized)
+            normalize(bool):Default True.normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel
+            diameter(float):default 30.if set to None, then diameter is automatically estimated if size model is loaded
+            anisotropy(float):for 3D segmentation, optional rescaling factor (e.g. set to 2.0 if Z is sampled half as dense as X or Y)
+            net_avg(bool): optional,default True.runs the 4 built-in networks and averages them if True, runs one network if False
+            augment(bool): optional, default False.tiles image with overlapping tiles and flips overlapped regions to augment
+            tile(bool): optional,default True.tiles image to ensure GPU/CPU memory usage limited
+            tile_overlap(float): optional, default 0.1.fraction of overlap of tiles when computing flows
+            resample(bool): optional, default False.run dynamics at original image size (will be slower but create more accurate boundaries)
+            interp(bool): optional, default True.interpolate during 2D dynamics
+            flow_threshold(float): optional, default 0.4.flow error threshold (all cells with errors below threshold are kept)
+            cellprob_threshold(float): optional, default 0.0.cell probability threshold (all pixels with prob above threshold kept for masks)
+            min_size(int): optional, default 15.minimum number of pixels per mask, can turn off with -1
+            stitch_threshold(float): optional, default 0.0.if stitch_threshold>0.0  and equal image sizes, masks are stitched in 3D to return volume segmentation
+            rescale(float): optional, default None if diameter is set to None, and rescale is not None, then rescale is used instead of diameter for resizing image
 
         Returns:
-        masks(arrays): list of 2D .labelled image, where 0=no masks; 1,2,...=mask labels
-        flows(array): list of lists 2D arrays,
-            flows[k][0] = XY flow in HSV 0-255
-            flows[k][1] = flows at each pixel
-            flows[k][2] = the cell probability centered at 0.0
-        styles: list of 1D arrays of length 64
-            style vector summarizing each image, also used to estimate size of objects in image
-        diams[list]: list of diameters, or float
+            masks(arrays): list of 2D .labelled image, where 0=no masks; 1,2,...=mask labels
+            flows(array): list of lists 2D arrays,
+                flows[k][0] = XY flow in HSV 0-255
+                flows[k][1] = flows at each pixel
+                flows[k][2] = the cell probability centered at 0.0
+            styles: list of 1D arrays of length 64.style vector summarizing each image, also used to estimate size of objects in image
+            diams[list]: list of diameters, or float
 
         """
 
@@ -151,7 +150,6 @@ class Cellpose():
                     rescale = np.ones(nimg, np.float32)
                 diams = self.diam_mean / rescale
 
-
         prob, _, _ = self.cp.eval(x, batch_size=batch_size,
                                        invert=invert,
                                        rescale=rescale,
@@ -172,8 +170,7 @@ class Cellpose():
 
 
 class CellposeModel(UnetModel):
-    """
-
+    """Class for the segmenting masks
 
     """
 
@@ -228,19 +225,12 @@ class CellposeModel(UnetModel):
              augment=False, tile=True, tile_overlap=0.1,tile_size=224,
              resample=False, interp=True, flow_threshold=0.4, cellprob_threshold=0.0, compute_masks=False,
              min_size=15, stitch_threshold=0.0, not_compute=True):
-        """
-            segment list of images imgs, or 4D array - Z x nchan x Y x X
-            Args:
+        """Segment list of images imgs, or 4D array - Z x nchan x Y x X
+        Args:
             imgs(array): can be list of 2D/3D/4D images, or array of 2D/3D images
             batch_size(int):  default 8.number of 224x224 patches to run simultaneously on the GPU
                 (can make smaller or bigger depending on GPU memory usage)
-            channels(list):   default None
-                list of channels, either of length 2 or of length number of images by 2.
-                First element of list is the channel to segment (0=grayscale, 1=red, 2=blue, 3=green).
-                Second element of list is the optional nuclear channel (0=none, 1=red, 2=blue, 3=green).
-                For instance, to segment grayscale images, input [0,0]. To segment images with cells
-                in green and nuclei in blue, input [2,3]. To segment one grayscale image and one
-                image with cells in green and nuclei in blue, input [[0,0], [2,3]].
+            channels(list):   default None.list of channels, either of length 2 or of length number of images by 2.
             normalize(bool): default, True.normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel
             invert(bool):  default False.invert image pixel intensity before running network
             rescale(float): resize factor for each image, if None, set to 1.0
@@ -258,16 +248,13 @@ class CellposeModel(UnetModel):
                 This is set to False when retrieving the styles for the size model.
             min_size(int):  default 15.Minimum number of pixels per mask, can turn off with -1
 
-            Returns:
+        Returns:
             masks(list): list of 2D arrays.labelled image, where 0=no masks; 1,2,...=mask labels
-
             flows(list): list of lists 2D arrays
                 flows[k][0] = XY flow in HSV 0-255
                 flows[k][1] = flows at each pixel
                 flows[k][2] = the cell probability centered at 0.0
-
-            styles: list of 1D arrays of length 64, or single 1D array
-                style vector summarizing each image, also used to estimate size of objects in image
+            styles(array): list of 1D arrays of length 64, or single 1D array.style vector summarizing each image, also used to estimate size of objects in image
 
         """
 
@@ -345,8 +332,8 @@ class CellposeModel(UnetModel):
 class SizeModel():
     """ linear regression model for determining the size of objects in image used to rescale before input to cp_model
         uses styles from cp_model
-        Attributes:
-        attributes:cp_model: UnetModel or CellposeModel.model from which to get styles
+    Attributes:
+        cp_model: UnetModel or CellposeModel.model from which to get styles
         device: mxnet device (optional, default mx.cpu())where cellpose model is saved (mx.gpu() or mx.cpu())
         pretrained_size(str): path to pretrained size modelor mx.cpu())
         pretrained_size(str): path to pretrained size model
@@ -370,12 +357,12 @@ class SizeModel():
 
     def eval(self, imgs=None, styles=None, channels=None, normalize=True, invert=False, augment=False, tile=True,
              batch_size=8):
-        """ use images imgs to produce style or use style input to predict size of objects in image
+        """ Use images imgs to produce style or use style input to predict size of objects in image
             Object size estimation is done in two steps:
             1. use a linear regression model to predict size from style in image
             2. resize image to predicted size and run CellposeModel to get output masks.
                 Take the median object size of the predicted masks as the final predicted size.
-            Args:
+        Args:
             imgs(array/list): can be list of 2D/3D images, or array of 2D images
             styles(array/list): styles for images x - if x is None then styles must not be None
             channels(list):list of channels, either of length 2 or of length number of images by 2.
@@ -389,7 +376,7 @@ class SizeModel():
             augment(bool):  default False.tiles image with overlapping tiles and flips overlapped regions to augment
             tile(bool):  default True.tiles image to ensure GPU/CPU memory usage limited (recommended)
 
-            Returns:
+        Returns:
             diam(array[float]): final estimated diameters from images x or styles style after running both steps
             diam_style(array[float]): estimated diameters from style alone
 
@@ -427,7 +414,10 @@ class SizeModel():
     def _size_estimation(self, style):
         """ linear regression from style to size.Sizes were estimated using "diameters" from square estimates not circles;
             therefore a conversion factor is included (to be removed)
-        
+        Args:
+            style(array) : style of Unet model
+        Returns:
+        szest(float): diameter estimate
         """
         szest = np.exp(self.params['A'] @ (style - self.params['smean']).T +
                        np.log(self.diam_mean) + self.params['ymean'])

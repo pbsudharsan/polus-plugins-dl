@@ -46,7 +46,7 @@ def diameters(masks):
     Returns:
         md(int): Median of diameter
         counts(int): Count of unique masks
-label_conv
+
     """
     _, counts = np.unique(np.int32(masks), return_counts=True)
     counts = counts[1:]

@@ -1,8 +1,13 @@
+'''
+
+Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+
+'''
+
 import os, logging
 import numpy as np
 import transforms
 import torch
-
 from torch.utils import mkldnn as mkldnn_utils
 import resnet_torch
 
@@ -16,6 +21,15 @@ torch_CPU = torch.device('cpu')
 
 
 def parse_model_string(pretrained_model):
+    """Parse string from filename eof pretrained model
+    Args:
+        pretrained_model(str): pretrained model name
+    Returns:
+        nclasses(int): number of classes
+        residual_on(bool): Unet parameter
+        style_on(bool):Unet parameter
+        concatenation(bool):Unet parameter
+    """
     if isinstance(pretrained_model, list):
         model_str = os.path.split(pretrained_model[0])[-1]
     else:
@@ -35,11 +49,23 @@ def parse_model_string(pretrained_model):
     return nclasses, residual_on, style_on, concatenation
 
 def use_gpu(gpu_number=0, istorch=True):
-    """ check if gpu works """
+    """ check if gpu works
+    Args:
+        gpu_number(int):gpu number
+        istorch(bool): Use of torch
+    Returns:
+        _(bool) : true if gpu is present else false
+    """
     if istorch:
         return _use_gpu_torch(gpu_number)
 
 def _use_gpu_torch(gpu_number=0):
+    """Checks for Cuda installation
+    Args:
+        gpu_number(int):gpu number
+    Returns:
+        _(bool): true or false
+    """
     try:
         device = torch.device('cuda:' + str(gpu_number))
         _ = torch.zeros([1, 2, 3]).to(device)
@@ -51,6 +77,14 @@ def _use_gpu_torch(gpu_number=0):
 
 
 def assign_device(istorch):
+    """Setting CUDA/CPu
+    Args:
+        istorch(bool):checks for torch usage
+    Returns:
+        device(torch.device): set cpu/gpu
+        gpu(bool): true if gpu is being used
+
+    """
     if  use_gpu(istorch=istorch):
         device = torch_GPU
         gpu=True
@@ -62,6 +96,12 @@ def assign_device(istorch):
     return device, gpu
 
 def check_mkl(istorch=True):
+    """test snippet to check if MKL-DNN working
+        Args:
+            istorch(bool):checks for torch usage
+        Returns:
+            mkl_enabled(bool): true if cpu is mkl enabled
+    """
     logger.info('Running test snippet to check if MKL-DNN working')
     if istorch:
         logger.info('see https://pytorch.org/docs/stable/backends.html?highlight=mkl')
@@ -75,7 +115,17 @@ def check_mkl(istorch=True):
 
 
 def convert_images(x, channels, normalize, invert):
-    """ return list of images with channels last and normalized intensities """
+    """ return list of images with channels last and normalized intensities
+    Args:
+        x(array): input image
+        channels(list): channel to segment
+        normalize(bool): if input needs to be normalised
+
+    Returns:
+        x(array): normalized array
+        nolist(bool): input  array is a list of array
+
+    """
     if not isinstance(x,list) and not (x.ndim>3 ):
         nolist = True
         x = [x]
@@ -111,6 +161,18 @@ def convert_images(x, channels, normalize, invert):
 
 
 class UnetModel():
+    """ Basic Unet model
+    Attributes:
+        pretrained_model: UnetModel or CellposeModel.model from which to get styles
+        device: torch device (optional)
+        diam_mean(float): diameter of masks
+        nclasses(int): number of classes
+        residual_on(bool): Unet parameter
+        style_on(bool):Unet parameter
+        concatenation(bool):Unet parameter
+        gpu(bool):use of gpu
+        torch(bool): using pytorch
+    """
     def __init__(self, pretrained_model=False,gpu=False,
                     diam_mean=30., net_avg=True, device=None,
                     residual_on=False, style_on=False, concatenation=True,
@@ -156,15 +218,34 @@ class UnetModel():
 
 
     def _to_device(self, x):
+        """ convert  numpy to tensor
+        Args:
+            x(array): numpy array
+        Returns:
+            X(tensor): tensor array
+
+        """
         X = torch.from_numpy(x).float().to(self.device)
         return X
 
     def _from_device(self, X):
+        """ convert   tensor to numpy
+        Args:
+            X(tensor): tensor array
+        Returns:
+             x(array): numpy array
+        """
         x = X.detach().cpu().numpy()
         return x
 
     def network(self, x):
-        """ convert imgs to torch and run network model and return numpy """
+        """ convert imgs to torch and run network model and return numpy
+        Args:
+            x(array):input image
+        Returns:
+           y(array):  [Ly x Lx x 3]  y[...,0] is Y flow; y[...,1] is X flow; y[...,2] is cell probability
+           style(array): [64]1D array summarizing the style of the image,if tiled it is averaged over tiles
+        """
         X = self._to_device(x)
         if self.torch:
             self.net.eval()
@@ -180,17 +261,17 @@ class UnetModel():
     def _run_nets(self, img, net_avg=True, augment=False, tile=True, tile_overlap=0.1, bsize=224, progress=None):
         """ run network (if more than one, loop over networks and average results
         Args:
-        img(array[float]):  [Ly x Lx x nchan]
-        net_avg(bool):  default True.runs the 4 built-in networks and averages them if True, runs one network if False
-        augment(bool): default False.tiles image with overlapping tiles and flips overlapped regions to augment
-        tile(bool): default True.tiles image to ensure GPU memory usage limited (recommended)
-        tile_overlap(float):  default 0.1.fraction of overlap of tiles when computing flows
+            img(array[float]):  [Ly x Lx x nchan]
+            net_avg(bool):  default True.runs the 4 built-in networks and averages them if True, runs one network if False
+            augment(bool): default False.tiles image with overlapping tiles and flips overlapped regions to augment
+            tile(bool): default True.tiles image to ensure GPU memory usage limited (recommended)
+            tile_overlap(float):  default 0.1.fraction of overlap of tiles when computing flows
 
         Returns:
-        y(array):  [3 x Ly x Lx] y is output (averaged over networks);
-            y[0] is Y flow; y[1] is X flow; y[2] is cell probability
-        style(array): 1D array summarizing the style of the image,if tiled it is averaged over tiles,
-            but not averaged over networks.
+            y(array):  [3 x Ly x Lx] y is output (averaged over networks);y[0] is Y flow; y[1] is X flow; y[2] is
+                      cell probability
+            style(array): 1D array summarizing the style of the image,if tiled it is averaged over tiles,
+                         but not averaged over networks.
 
         """
         if isinstance(self.pretrained_model, str) or not net_avg:
@@ -213,18 +294,18 @@ class UnetModel():
         return y, style
 
     def _run_net(self, imgs, augment=False, tile=True, tile_overlap=0.1, bsize=224):
-        """ run network on image or stack of images(faster if augment is False)
+        """ Run network on image or stack of images(faster if augment is False)
         Args:
-        imgs(array):  [Ly x Lx x nchan]
-        rsz(float):  default 1.0. resize coefficient(s) for image
-        augment(bool): default False.tiles image with overlapping tiles and flips overlapped regions to augment
-        tile(bool): default True.tiles image to ensure GPU/CPU memory usage limited (recommended);
-        tile_overlap(float): default 0.1.fraction of overlap of tiles when computing flows
-        bsize(int):  default 224.size of tiles to use in pixels [bsize x bsize]
+            imgs(array):  [Ly x Lx x nchan]
+            rsz(float):  default 1.0. resize coefficient(s) for image
+            augment(bool): default False.tiles image with overlapping tiles and flips overlapped regions to augment
+            tile(bool): default True.tiles image to ensure GPU/CPU memory usage limited (recommended);
+            tile_overlap(float): default 0.1.fraction of overlap of tiles when computing flows
+            bsize(int):  default 224.size of tiles to use in pixels [bsize x bsize]
 
         Returns:
-        y: array [Ly x Lx x 3]  y[...,0] is Y flow; y[...,1] is X flow; y[...,2] is cell probability
-        style: array [64]1D array summarizing the style of the image,if tiled it is averaged over tiles
+            y(array):  [Ly x Lx x 3]  y[...,0] is Y flow; y[...,1] is X flow; y[...,2] is cell probability
+            style(array): [64]1D array summarizing the style of the image,if tiled it is averaged over tiles
 
         """
         if imgs.ndim==4:
@@ -266,15 +347,15 @@ class UnetModel():
         If augment, tiles have 50% overlap and are flipped at overlaps.
         The average of the network output over tiles is returned.
         Args:
-        imgi(array): array [nchan x Ly x Lx]
-        augment(bool): default False.tiles image with overlapping tiles and flips overlapped regions to augment
-        bsize(int):  default 224.size of tiles to use in pixels [bsize x bsize]
-        tile_overlap(float): default 0.1.fraction of overlap of tiles when computing flows
+            imgi(array): array [nchan x Ly x Lx]
+            augment(bool): default False.tiles image with overlapping tiles and flips overlapped regions to augment
+            bsize(int):  default 224.size of tiles to use in pixels [bsize x bsize]
+            tile_overlap(float): default 0.1.fraction of overlap of tiles when computing flows
 
         Returns:
-        yf(array): array [3 x Ly x Lx] or [Lz x 3 x Ly x Lx].yf is averaged over tiles
+            yf(array): array [3 x Ly x Lx] or [Lz x 3 x Ly x Lx].yf is averaged over tiles
             yf[0] is Y flow; yf[1] is X flow; yf[2] is cell probability
-        styles(array): 1D array summarizing the style of the image, averaged over tiles
+            styles(array): 1D array summarizing the style of the image, averaged over tiles
 
         """
 

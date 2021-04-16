@@ -1,14 +1,16 @@
+'''
 
+Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+
+'''
 from scipy.ndimage.filters import maximum_filter1d
 import scipy.ndimage
 import numpy as np
-
 from numba import njit
 import utils, metrics
 import torch
 
 torch_GPU = torch.device('cuda')
-
 
 @njit('(float64[:], int32[:], int32[:], int32, int32, int32, int32)', nogil=True)
 def _extend_centers(T,y,x,ymed,xmed,Lx, niter):
