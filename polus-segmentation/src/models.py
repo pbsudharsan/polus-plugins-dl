@@ -132,14 +132,10 @@ class CellposeModel(UnetModel):
               save_path=None, save_every=100,
               learning_rate=0.2, n_epochs=500, momentum=0.9, weight_decay=0.00001, batch_size=8, rescale=True):
 
-        """ train network with images train_data
+        """ Train network with images train_data
 
-            Parameters
-            ------------------
-
-            train_data: list of arrays (2D or 3D)
-                images for training
-
+            Args:
+            train_data(list): list of arrays (2D).images for training
             train_labels: list of arrays (2D or 3D)
                 labels for train_data, where 0=no masks; 1,2,...=mask labels
                 can include flows as additional images

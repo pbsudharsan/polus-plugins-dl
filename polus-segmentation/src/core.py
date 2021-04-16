@@ -836,15 +836,15 @@ olinke
             scale_range = 1.0
         loss_history = deque(maxlen=early_stopping + 1)
         nchan = train_data[0].shape[0]
-        print('>>>> training network with %d channel input <<<<' % nchan)
-        print('>>>> saving every %d epochs' % save_every)
-        print('>>>> median diameter = %d' % self.diam_mean)
+        print('Training network with %d channel input <<<<' % nchan)
+        print('Saving every %d epochs' % save_every)
+        print('Median diameter = %d' % self.diam_mean)
         print(
             '>>>> LR: %0.5f, batch_size: %d, weight_decay: %0.5f' % (self.learning_rate, self.batch_size, weight_decay))
         print('>>>> ntrain = %d' % nimg)
         if test_data is not None:
             print('>>>> ntest = %d' % len(test_data))
-       # print(train_data[0].shape)
+
 
         # set learning rate schedule
         LR = np.linspace(0, self.learning_rate, 10)
@@ -881,7 +881,6 @@ olinke
 
             for ibatch in range(0, nimg, batch_size):
                 inds = rperm[ibatch:ibatch + batch_size]
-        #        print('tsdfs',self.diam_mean,diam_train.shape)
                 rsc = diam_train[inds] / self.diam_mean if rescale else np.ones(len(inds), np.float32)
                 imgi, lbl, scale = transforms.random_rotate_and_resize(
                     [train_data[i] for i in inds], Y=[train_labels[i][1:] for i in inds],
@@ -930,7 +929,7 @@ olinke
             # save model at the end
                 file = '{}_{}_{}'.format(self.net_type, file_label, d.strftime("%Y_%m_%d_%H_%M_%S.%f"))
                 ksave += 1
-                print('saving network parameters')
+                print('Saving network parameters')
                 self.net.save_model(os.path.join(file_path, file))
 
         # reset to mkldnn if available

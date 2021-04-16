@@ -29,7 +29,7 @@ def hsv_to_rgb(arr):
 
 
 def download_url_to_file(url, dst, progress=True):
-    r"""Download object at the given URL to a local path.
+    """ Download object at the given URL to a local path.
             Thanks to torch, slightly modified
     Args:
         url (string): URL of the object to download
@@ -69,18 +69,11 @@ def download_url_to_file(url, dst, progress=True):
 
 def distance_to_boundary(masks):
     """ get distance to boundary of mask pixels
+    Args:
+        masks(array[int]):  2D array.size [Ly x Lx] , 0=NO masks; 1,2,...=mask labels
 
-    Parameters
-    ----------------
-
-    masks: int, 2D or 3D array
-        size [Ly x Lx] or [Lz x Ly x Lx], 0=NO masks; 1,2,...=mask labels
-
-    Returns
-    ----------------
-
-    dist_to_bound: 2D or 3D array
-        size [Ly x Lx] or [Lz x Ly x Lx]
+    Returns:
+        dist_to_bound(array): 2D array.size [Ly x Lx]
 
     """
     if masks.ndim > 3 or masks.ndim < 2:
@@ -109,10 +102,8 @@ def distance_to_boundary(masks):
 def masks_to_edges(masks, threshold=1.0):
     """ get edges of masks as a 0-1 array
 
-    Parameters
-    ----------------
-
-    masks: int, 2D or 3D array
+    Args:
+        masks: int, 2D or 3D array
         size [Ly x Lx] or [Lz x Ly x Lx], 0=NO masks; 1,2,...=mask labels
 
     Returns
@@ -367,9 +358,7 @@ def fill_holes_and_remove_small_masks(masks, min_size=15):
 
     fill holes in each mask using scipy.ndimage.morphology.binary_fill_holes
 
-    Parameters
-    ----------------
-
+    Args:
     masks: int, 2D or 3D array
         labelled masks, 0=NO masks; 1,2,...=mask labels,
         size [Ly x Lx] or [Lz x Ly x Lx]
@@ -377,8 +366,7 @@ def fill_holes_and_remove_small_masks(masks, min_size=15):
     min_size: int (optional, default 15)
         minimum number of pixels per mask, can turn off with -1
 
-    Returns
-    ---------------
+    Returns:
 
     masks: int, 2D or 3D array
         masks with holes filled and masks smaller than min_size removed,
