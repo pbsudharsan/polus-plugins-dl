@@ -21,7 +21,7 @@ urls = [
 
 
 def download_model_weights(pretrained_model,urls=urls):
-    """ Downloading model weights  based on segmentation
+    """ Downloading model weights  baimreadsed on segmentation
     Args:
         pretrained_model(str): Cyto/nuclei Segementation
         urls(list): list of urls for model weights
@@ -64,7 +64,7 @@ def main():
     parser.add_argument('--diameter', dest='diameter', type=float,default=30.,help='Diameter', required=False)
     parser.add_argument('--inpDir', dest='inpDir', type=str,
                         help='Input image collection to be processed by this plugin', required=True)
-    parser.add_argument('--pretrainedModel', dest='pretrainedModel', type=str,default='cyto',
+    parser.add_argument('--pretrainedModel', dest='pretrainedModel', type=str,
                         help='Filename pattern used to separate data', required=False)
 
     # Output arguments
@@ -97,13 +97,16 @@ def main():
             diameter = args.diameter
             logger.info(' Using diameter %0.2f for all images' % diameter)
 
-        if pretrained_model is 'cyto' or 'nuclei':
+        if pretrained_model in ['cyto' , 'nuclei']:
+             print('entering',pretrained_model)
              logger.info('Running the images on %s model'% str(pretrained_model))
              download_model_weights(pretrained_model)
              model = models.Cellpose( model_type=pretrained_model)
         elif Path(pretrained_model).exists():
+
             model = models.CellposeModel( pretrained_model=pretrained_model)
-            rescale = model.diam_mean / diameter
+    #        rescale = model.diam_mean / diameter
+
         else:
             raise FileNotFoundError()
 

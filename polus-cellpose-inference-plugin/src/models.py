@@ -58,6 +58,7 @@ class Cellpose():
         torch_str = ['', 'torch'][self.torch]
         # assign device (GPU or CPU)
         device, gpu = assign_device(self.torch)
+
         self.device = device  # if device is not None else sdevice
         self.gpu = gpu
         model_type = 'cyto' if model_type is None else model_type
@@ -128,6 +129,7 @@ class Cellpose():
 
         nimg = len(x)
         # make rescale into length of x
+
         if diameter is not None and not (not isinstance(diameter, (list, np.ndarray)) and
                                          (diameter == 0 or (diameter == 30. and rescale is not None))):
             if not isinstance(diameter, (list, np.ndarray)) or len(diameter) == 1 or len(diameter) < nimg:
@@ -138,7 +140,9 @@ class Cellpose():
         else:
             if rescale is not None and (not isinstance(rescale, (list, np.ndarray)) or len(rescale) == 1):
                 rescale = rescale * np.ones(nimg, np.float32)
+
             if self.pretrained_size is not None and rescale is None:
+
                 tic = time.time()
                 diams, _ = self.sz.eval(x, channels=channels, invert=invert, batch_size=batch_size,
                                         augment=augment, tile=tile)
@@ -150,7 +154,7 @@ class Cellpose():
                     rescale = np.ones(nimg, np.float32)
                 diams = self.diam_mean / rescale
 
-        prob, _, _ = self.cp.eval(x, batch_size=batch_size,
+        prob = self.cp.eval(x, batch_size=batch_size,
                                        invert=invert,
                                        rescale=rescale,
                                        anisotropy=anisotropy,
@@ -165,6 +169,7 @@ class Cellpose():
                                        cellprob_threshold=cellprob_threshold,
                                        min_size=min_size,
                                        stitch_threshold=stitch_threshold,tile_size=tile_size)
+
 
         return  prob
 
@@ -188,6 +193,7 @@ class CellposeModel(UnetModel):
            """
         torch = True
         self.torch = torch
+        device, gpu = assign_device(self.torch)
 
         if isinstance(pretrained_model, np.ndarray):
             pretrained_model = list(pretrained_model)
@@ -213,6 +219,7 @@ class CellposeModel(UnetModel):
 
         self.unet = False
         self.pretrained_model = pretrained_model
+        print(pretrained_model)
         if self.pretrained_model is not None and isinstance(self.pretrained_model, str):
             self.net.load_model(self.pretrained_model, cpu=(not self.gpu))
         ostr = ['off', 'on']
@@ -282,9 +289,6 @@ class CellposeModel(UnetModel):
 
         if isinstance(self.pretrained_model, list) and not net_avg:
             self.net.load_model(self.pretrained_model[0], cpu=(not self.gpu))
-            # if not self.torch:
-            #     self.net.collect_params().grad_req = 'null'
-
         flow_time = 0
         net_time = 0
         for i in iterator:
@@ -299,8 +303,10 @@ class CellposeModel(UnetModel):
                                           augment=augment, tile=tile,
                                           tile_overlap=tile_overlap,bsize=tile_size)
             net_time += time.time() - tic
+
             styles.append(style)
             if compute_masks:
+
                 tic = time.time()
                 if resample:
                     y = transforms.resize_image(y, shape[-3], shape[-2])
@@ -318,15 +324,17 @@ class CellposeModel(UnetModel):
                 flows.append([dx_to_circ(dP), dP, cellprob, p])
                 masks.append(maski)
                 flow_time += time.time() - tic
-
+                return y, masks, styles
             else:
+
                 if not_compute:
                     y = transforms.resize_image(y, shape[-3], shape[-2])
 
                 else:
                     flows.append([None] * 3)
                     masks.append([])
-        return y, masks, styles
+                return y
+
 
 
 class SizeModel():
