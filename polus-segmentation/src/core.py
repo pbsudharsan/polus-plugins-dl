@@ -907,16 +907,15 @@ olinke
                             lbl[:, 1] *= scale[0] ** 2
 
                         test_loss = self._test_eval(imgi, lbl)
-                        loss_history.append(test_loss)
-                        print(loss_history)
-                        if len(loss_history) > early_stopping:
-                            if loss_history.popleft() < min(loss_history):
-                                print(f'\nEarly stopping. No validation loss '
-                                      f'improvement in {early_stopping} epochs.')
-                                break
+
                         lavgt += test_loss
                         nsum += len(imgi)
-
+                    # loss_history.append(lavgt / nsum)
+                    # if len(loss_history) > early_stopping:
+                    #     if loss_history.popleft() < min(loss_history):
+                    #         print(f'\nEarly stopping. No validation loss '
+                    #               f'improvement in {early_stopping} epochs.')
+                    #         break
                     print('Epoch %d, Time %4.1fs, Loss %2.4f, Loss Test %2.4f, LR %2.4f' %
                           (iepoch, time.time() - tic, lavg, lavgt / nsum, LR[iepoch]))
                 else:
