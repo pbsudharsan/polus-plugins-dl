@@ -137,6 +137,15 @@ def main():
                             out_image = np.zeros((1, tile_img.shape[0], tile_img.shape[1], 3,1)).astype(np.float32)
                             logger.info('Calculating flows on slice %d tile(y,x) %d :%d %d:%d ',z,y,y_max,x,x_max)
                             prob = model.eval(tile_img, diameter=diameter,rescale=rescale)
+                            import matplotlib.pyplot as plt
+                            flow_img = (prob + 1) / 2
+                     #       flow_img = flow_img.transpose(1, 2, 0)
+                  #          flow_img = flow_img[:, :, 1:2]
+                            print(flow_img.shape, 'tesdfd')
+
+                            im=plt.imshow(flow_img.squeeze() )
+                            plt.show()
+
                             prob=prob[np.newaxis,]
                             logger.info('Shaping array as per ome format')
                             out_image= prob[...,np.newaxis]
