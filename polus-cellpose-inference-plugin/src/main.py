@@ -1,11 +1,16 @@
-from bfio import BioReader
-import argparse, logging, sys ,os
-from urllib.parse import urlparse
-from utils import download_url_to_file
-import numpy as np
+import argparse
+import logging
+import os
+import sys
 from pathlib import Path
+from urllib.parse import urlparse
+
+import numpy as np
 import zarr
+from bfio import BioReader
+
 import models
+from utils import download_url_to_file
 
 urls = [
     'https://www.cellpose.org/models/cytotorch_0',
@@ -20,7 +25,7 @@ urls = [
     'https://www.cellpose.org/models/size_nucleitorch_0.npy']
 
 
-def download_model_weights(pretrained_model,urls=urls):
+def download_model_weights(pretrained_model, urls=urls):
     """ Downloading model weights  baimreadsed on segmentation
     Args:
         pretrained_model(str): Cyto/nuclei Segementation
@@ -28,13 +33,13 @@ def download_model_weights(pretrained_model,urls=urls):
 
     """
     # cellpose directory
-    start= 0
-    end=len(urls)
-    if pretrained_model=='cyto':
-        end+=4
+    start = 0
+    end = len(urls)
+    if pretrained_model == 'cyto':
+        end += 4
     else:
-        start+=5
-    urls=urls[start:end]
+        start += 5
+    urls = urls[start:end]
     cp_dir = Path.home().joinpath('.cellpose')
     cp_dir.mkdir(exist_ok=True)
     model_dir = cp_dir.joinpath('models')
@@ -49,6 +54,9 @@ def download_model_weights(pretrained_model,urls=urls):
             download_url_to_file(url, cached_file, progress=True)
 
 
+TILE_SIZE = 1024
+TILE_OVERLAP = 512
+
 
 def main():
     # Initialize the logger
@@ -59,13 +67,15 @@ def main():
     ''' Argument parsing '''
     logger.info("Parsing arguments...")
     parser = argparse.ArgumentParser(prog='main', description='Cellpose parameters')
-    
+
     # Input arguments
-    parser.add_argument('--diameter', dest='diameter', type=float,default=30.,help='Diameter', required=False)
+    parser.add_argument('--diameter', dest='diameter', type=float, default=30.,
+                        help='cell diameter, if 0 cellpose will estimate for each image',
+                        required=False)
     parser.add_argument('--inpDir', dest='inpDir', type=str,
                         help='Input image collection to be processed by this plugin', required=True)
     parser.add_argument('--pretrainedModel', dest='pretrainedModel', type=str,
-                        help='Filename pattern used to separate data', required=False)
+                        help='model to use', required=False)
 
     # Output arguments
     parser.add_argument('--outDir', dest='outDir', type=str,
@@ -79,7 +89,7 @@ def main():
         inpDir = str(Path(args.inpDir).joinpath('images').absolute())
     logger.info('inpDir = {}'.format(inpDir))
     pretrained_model = args.pretrainedModel
-    logger.info('pretrained_model = {}'.format(pretrained_model))
+    logger.info('pretrained model = {}'.format(pretrained_model))
     outDir = args.outDir
     logger.info('outDir = {}'.format(outDir))
 
@@ -87,74 +97,81 @@ def main():
     try:
         logger.info('Initializing ...')
         # Get all file names in inpDir image collection
-        inpDir_files = [f.name for f in Path(inpDir).iterdir() if f.is_file() and "".join(f.suffixes) == '.ome.tif']
+        inpDir_files = [f.name for f in Path(inpDir).iterdir() if
+                        f.is_file() and "".join(f.suffixes) == '.ome.tif']
         rescale = None
 
-        if args.diameter == 0:
-            diameter = None
-            logger.info('Estimating diameter for each image')
-        else:
-            diameter = args.diameter
-            logger.info(' Using diameter %0.2f for all images' % diameter)
-
-        if pretrained_model in ['cyto' , 'nuclei']:
-             print('entering',pretrained_model)
-             logger.info('Running the images on %s model'% str(pretrained_model))
-             download_model_weights(pretrained_model)
-             model = models.Cellpose( model_type=pretrained_model)
+        if pretrained_model in ['cyto', 'nuclei']:
+            logger.info('Running the images on %s model' % str(pretrained_model))
+            download_model_weights(pretrained_model)
+            model = models.Cellpose(model_type=pretrained_model)
         elif Path(pretrained_model).exists():
-
-            model = models.CellposeModel( pretrained_model=pretrained_model)
-    #        rescale = model.diam_mean / diameter
+            model = models.CellposeModel(pretrained_model=pretrained_model)
 
         else:
             raise FileNotFoundError()
 
-        try:
-            if Path(outDir).joinpath('flow.zarr').exists():
-                raise FileExistsError()
+        if args.diameter == 0:
+            if pretrained_model in ['cyto', 'nuclei']:
+                diameter = None
+                logger.info('Estimating diameter for each image')
+            else:
+                logger.info('Using user-specified model, no auto-diameter estimation available')
+                diameter = model.diam_mean
+        else:
+            diameter = args.diameter
+            logger.info('Using diameter %0.2f for all images' % diameter)
 
-            root = zarr.group(store=str(Path(outDir).joinpath('flow.zarr')))
-            for f in inpDir_files:
-                # Loop through files in inpDir image collection and process
-                br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
-                tile_size = min(1024,br.X)
-                logger.info('Processing image %s ',f)
+        root = zarr.group(store=str(Path(outDir).joinpath('flow.zarr')))
+        for f in inpDir_files:
+            # Loop through files in inpDir image collection and process
+            br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
+            #  tile_size = min(TILE_SIZE,br.X)
+            logger.info('Processing image %s ', f)
 
-                # Saving pixel locations and probablity in a zarr file
-                cluster = root.create_group(f)
-                init_cluster_1 = cluster.create_dataset('vector', shape=(br.Y,br.X,br.Z,3,1),chunks=(tile_size,tile_size,1,3,1) ,
-                                                         dtype=np.float32)
-                cluster.attrs['metadata'] = str(br.metadata)
-                # Iterating through z slices
-                for z in range(br.Z):
-                    # Iterating based on tile size
-                    for x in range(0, br.X, tile_size):
-                        x_max = min([br.X, x + tile_size])
-                        for y in range(0, br.Y, tile_size):
-                            y_max = min([br.Y, y + tile_size])
-                            tile_img = (br[y:y_max, x:x_max,z:z+1, 0,0]).squeeze()
-                            out_image = np.zeros((1, tile_img.shape[0], tile_img.shape[1], 3,1)).astype(np.float32)
-                            logger.info('Calculating flows on slice %d tile(y,x) %d :%d %d:%d ',z,y,y_max,x,x_max)
-                            prob = model.eval(tile_img, diameter=diameter,rescale=rescale)
-                            import matplotlib.pyplot as plt
-                            flow_img = (prob + 1) / 2
-                     #       flow_img = flow_img.transpose(1, 2, 0)
-                  #          flow_img = flow_img[:, :, 1:2]
-                            print(flow_img.shape, 'tesdfd')
+            # Saving pixel locations and probablity  as zarr datasets and metadata as string
+            cluster = root.create_group(f)
+            init_cluster_1 = cluster.create_dataset('vector', shape=(br.Y, br.X, br.Z, 3, 1),
+                                                    chunks=(TILE_SIZE, TILE_SIZE, 1, 3, 1),
+                                                    dtype=np.float32)
+            cluster.attrs['metadata'] = str(br.metadata)
+            # Iterating through z slices
+            for z in range(br.Z):
+                # Iterating based on tile size
+                for x in range(0, br.X, TILE_SIZE):
 
-                            im=plt.imshow(flow_img.squeeze() )
-                            plt.show()
+                    for y in range(0, br.Y, TILE_SIZE):
+                        x_min = max([0, x - TILE_OVERLAP])
+                        x_max = min([br.X, x + TILE_SIZE + TILE_OVERLAP])
 
-                            prob=prob[np.newaxis,]
-                            logger.info('Shaping array as per ome format')
-                            out_image= prob[...,np.newaxis]
-                            out_image=out_image.transpose((1,2,0,3,4)).astype(np.float32)
-                            root[f]['vector'][y:y_max,x:x_max, z:z+1,0: 3, 0:1]=out_image
-                            del prob, out_image
+                        y_min = max([0, y - TILE_OVERLAP])
+                        y_max = min([br.Y, y + TILE_SIZE + TILE_OVERLAP])
 
-        except FileExistsError:
-            logger.info('Zarr file exists. Delete the existing file %r' % str((Path(outDir).joinpath('location.zarr'))))
+                        tile_img = br[y_min:y_max, x_min:x_max, z:z + 1, 0, 0].squeeze()
+                        logger.info('Calculating flows on slice %d tile(y,x) %d :%d %d:%d ', z, y,
+                                    y_max, x, x_max)
+                        prob = model.eval(tile_img, diameter=diameter, rescale=rescale)
+
+                        x_overlap = x - x_min
+                        x_min = x
+                        x_max = min([br.X, x + TILE_SIZE])
+
+                        y_overlap = y - y_min
+                        y_min = y
+                        y_max = min([br.Y, y + TILE_SIZE])
+
+                        prob = prob[np.newaxis,]
+                        logger.info('Writing the vector field of  slice %d tile(y,x) %d :%d %d:%d ',
+                                    z, y, y_max, x, x_max)
+                        prob = prob[..., np.newaxis]
+
+                        prob = prob.transpose((1, 2, 0, 3, 4))
+                        root[f]['vector'][y_min:y_max, x_min:x_max, z:z + 1, 0:3, 0:1] = prob[
+                                                                                         y_overlap:y_max - y_min + y_overlap,
+                                                                                         x_overlap:x_max - x_min + x_overlap,
+                                                                                         ...]
+                        del prob
+
     except FileNotFoundError:
         logger.info('ERROR: model path missing or incorrect %s' % str(pretrained_model))
     finally:
@@ -162,6 +179,7 @@ def main():
         logger.info('Closing the plugin')
         # Exit the program
         sys.exit()
+
 
 if __name__ == '__main__':
     main()

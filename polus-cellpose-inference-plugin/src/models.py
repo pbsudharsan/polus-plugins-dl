@@ -3,18 +3,24 @@
 Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
 
 '''
-import os, time, pathlib, logging
+import logging
+import os
+import pathlib
+import time
+
+import cv2
 import numpy as np
 from tqdm import trange
-import cv2
-import transforms, dynamics, utils
+
+import dynamics
+import transforms
+import utils
 from core import UnetModel, assign_device, convert_images, parse_model_string
 
 logging.basicConfig(format='%(asctime)s - %(name)-8s - %(levelname)-8s - %(message)s',
                     datefmt='%d-%b-%y %H:%M:%S')
 logger = logging.getLogger("model")
 logger.setLevel(logging.INFO)
-
 
 model_dir = pathlib.Path.home().joinpath('.cellpose', 'models')
 
@@ -41,13 +47,13 @@ def dx_to_circ(dP):
 
 
 class Cellpose():
-    """ Main model which combines SizeModel and CellposeModel
+    """ Main class  which Cellpose pretrained model segmentation
 
     """
 
     def __init__(self, model_type='cyto', net_avg=True, torch=True):
         """
-        Args:
+        Attributes:
             model_type(str):optional, default 'cyto','cyto'=cytoplasm model; 'nuclei'=nucleus model
             net_avg(bool): optional,default True.Loads the 4 built-in networks and averages them if True, loads one network if False
             torch(bool): optional, default False.Run model using torch if available
@@ -59,12 +65,14 @@ class Cellpose():
         # assign device (GPU or CPU)
         device, gpu = assign_device(self.torch)
 
-        self.device = device  # if device is not None else sdevice
+        self.device = device
         self.gpu = gpu
         model_type = 'cyto' if model_type is None else model_type
-        self.pretrained_model = [os.fspath(model_dir.joinpath('%s%s_%d' % (model_type, torch_str, j))) for j in
-                                 range(4)]
-        self.pretrained_size = os.fspath(model_dir.joinpath('size_%s%s_0.npy' % (model_type, torch_str)))
+        self.pretrained_model = [
+            os.fspath(model_dir.joinpath('%s%s_%d' % (model_type, torch_str, j))) for j in
+            range(4)]
+        self.pretrained_size = os.fspath(
+            model_dir.joinpath('size_%s%s_0.npy' % (model_type, torch_str)))
         self.diam_mean = 30. if model_type == 'cyto' else 17.
 
         if not net_avg:
@@ -80,7 +88,7 @@ class Cellpose():
         self.sz.model_type = model_type
 
     def eval(self, x, batch_size=8, channels=None, invert=False, normalize=True, diameter=30.,
-             anisotropy=None,tile_size=224,
+             anisotropy=None, tile_size=224,
              net_avg=True, augment=False, tile=True, tile_overlap=0.1, resample=False, interp=True,
              flow_threshold=0.4, cellprob_threshold=0.0, min_size=15,
              stitch_threshold=0.0, rescale=None):
@@ -105,7 +113,6 @@ class Cellpose():
             min_size(int): optional, default 15.minimum number of pixels per mask, can turn off with -1
             stitch_threshold(float): optional, default 0.0.if stitch_threshold>0.0  and equal image sizes, masks are stitched in 3D to return volume segmentation
             rescale(float): optional, default None if diameter is set to None, and rescale is not None, then rescale is used instead of diameter for resizing image
-
         Returns:
             masks(arrays): list of 2D .labelled image, where 0=no masks; 1,2,...=mask labels
             flows(array): list of lists 2D arrays,
@@ -131,14 +138,17 @@ class Cellpose():
         # make rescale into length of x
 
         if diameter is not None and not (not isinstance(diameter, (list, np.ndarray)) and
-                                         (diameter == 0 or (diameter == 30. and rescale is not None))):
-            if not isinstance(diameter, (list, np.ndarray)) or len(diameter) == 1 or len(diameter) < nimg:
+                                         (diameter == 0 or (
+                                                 diameter == 30. and rescale is not None))):
+            if not isinstance(diameter, (list, np.ndarray)) or len(diameter) == 1 or len(
+                    diameter) < nimg:
                 diams = diameter * np.ones(nimg, np.float32)
             else:
                 diams = diameter
             rescale = self.diam_mean / diams
         else:
-            if rescale is not None and (not isinstance(rescale, (list, np.ndarray)) or len(rescale) == 1):
+            if rescale is not None and (
+                    not isinstance(rescale, (list, np.ndarray)) or len(rescale) == 1):
                 rescale = rescale * np.ones(nimg, np.float32)
 
             if self.pretrained_size is not None and rescale is None:
@@ -148,30 +158,29 @@ class Cellpose():
                                         augment=augment, tile=tile)
                 rescale = self.diam_mean / diams
                 logger.info('Estimated cell diameters  in %0.2f sec' % (time.time() - tic))
-                logger.info('Diameter(s) = {}'.format( diams))
+                logger.info('Diameter(s) = {}'.format(diams))
             else:
                 if rescale is None:
                     rescale = np.ones(nimg, np.float32)
                 diams = self.diam_mean / rescale
 
         prob = self.cp.eval(x, batch_size=batch_size,
-                                       invert=invert,
-                                       rescale=rescale,
-                                       anisotropy=anisotropy,
-                                       channels=channels,
-                                       augment=augment,
-                                       tile=tile,
-                                       net_avg=net_avg,
-                                       tile_overlap=tile_overlap,
-                                       resample=resample,
-                                       interp=interp,
-                                       flow_threshold=flow_threshold,
-                                       cellprob_threshold=cellprob_threshold,
-                                       min_size=min_size,
-                                       stitch_threshold=stitch_threshold,tile_size=tile_size)
+                            invert=invert,
+                            rescale=rescale,
+                            anisotropy=anisotropy,
+                            channels=channels,
+                            augment=augment,
+                            tile=tile,
+                            net_avg=net_avg,
+                            tile_overlap=tile_overlap,
+                            resample=resample,
+                            interp=interp,
+                            flow_threshold=flow_threshold,
+                            cellprob_threshold=cellprob_threshold,
+                            min_size=min_size,
+                            stitch_threshold=stitch_threshold, tile_size=tile_size)
 
-
-        return  prob
+        return prob
 
 
 class CellposeModel(UnetModel):
@@ -179,21 +188,22 @@ class CellposeModel(UnetModel):
 
     """
 
-    def __init__(self, pretrained_model=False, torch=True, gpu=False,
+    def __init__(self, pretrained_model=False, torch=True, gpu=None,
                  diam_mean=30., net_avg=True, device=None,
                  residual_on=True, style_on=True, concatenation=False):
         """
-           Args:
+        Attributes:
            pretrained_model(str/list): optional.path to pretrained cellpose model(s), if False, no model loaded;
                if None, built-in 'cyto' model loaded
            net_avg(bool):  default True.loads the 4 built-in networks and averages them if True, loads one network if False
-
            diam_mean(float):  default 27.mean 'diameter', 27. is built in value for 'cyto' model
 
            """
         torch = True
         self.torch = torch
-        device, gpu = assign_device(self.torch)
+
+        if not device:
+            device, gpu = assign_device(self.torch)
 
         if isinstance(pretrained_model, np.ndarray):
             pretrained_model = list(pretrained_model)
@@ -214,12 +224,13 @@ class CellposeModel(UnetModel):
         # initialize network
         super().__init__(pretrained_model=False,
                          diam_mean=diam_mean, net_avg=net_avg, device=device,
-                         residual_on=residual_on, style_on=style_on, concatenation=concatenation, gpu=gpu,
+                         residual_on=residual_on, style_on=style_on, concatenation=concatenation,
+                         gpu=gpu,
                          nclasses=nclasses, torch=torch)
 
         self.unet = False
         self.pretrained_model = pretrained_model
-        print(pretrained_model)
+
         if self.pretrained_model is not None and isinstance(self.pretrained_model, str):
             self.net.load_model(self.pretrained_model, cpu=(not self.gpu))
         ostr = ['off', 'on']
@@ -229,8 +240,9 @@ class CellposeModel(UnetModel):
 
     def eval(self, imgs, batch_size=8, channels=None, normalize=True, invert=False,
              rescale=None, diameter=None, anisotropy=None, net_avg=True,
-             augment=False, tile=True, tile_overlap=0.1,tile_size=224,
-             resample=False, interp=True, flow_threshold=0.4, cellprob_threshold=0.0, compute_masks=False,
+             augment=False, tile=True, tile_overlap=0.1, tile_size=224,
+             resample=False, interp=True, flow_threshold=0.4, cellprob_threshold=0.0,
+             compute_masks=False,
              min_size=15, stitch_threshold=0.0, not_compute=True):
         """Segment list of images imgs, or 4D array - Z x nchan x Y x X
         Args:
@@ -254,7 +266,6 @@ class CellposeModel(UnetModel):
             compute_masks(bool): default True Whether or not to compute dynamics and return masks.
                 This is set to False when retrieving the styles for the size model.
             min_size(int):  default 15.Minimum number of pixels per mask, can turn off with -1
-
         Returns:
             masks(list): list of 2D arrays.labelled image, where 0=no masks; 1,2,...=mask labels
             flows(list): list of lists 2D arrays
@@ -278,7 +289,7 @@ class CellposeModel(UnetModel):
             if diameter is not None:
                 if not isinstance(diameter, (list, np.ndarray)):
                     diameter = diameter * np.ones(nimg)
-                    print(diameter,'diameter')
+
                 rescale = self.diam_mean / diameter
             else:
                 rescale = np.ones(nimg)
@@ -300,8 +311,8 @@ class CellposeModel(UnetModel):
             # rescale image for flow computation
             img = transforms.resize_image(img, rsz=rescale[i])
             y, style = self._run_nets(img, net_avg=net_avg,
-                                          augment=augment, tile=tile,
-                                          tile_overlap=tile_overlap,bsize=tile_size)
+                                      augment=augment, tile=tile,
+                                      tile_overlap=tile_overlap, bsize=tile_size)
             net_time += time.time() - tic
 
             styles.append(style)
@@ -315,12 +326,12 @@ class CellposeModel(UnetModel):
                 dP = y[:, :, :2].transpose((2, 0, 1))
                 niter = 1 / rescale[i] * 200
                 p = dynamics.follow_flows(-1 * dP * (cellprob > cellprob_threshold) / 5.,
-                                                niter=niter, interp=interp, use_gpu=self.gpu)
+                                          niter=niter, interp=interp, use_gpu=self.gpu)
                 maski = dynamics.get_masks(p, iscell=(cellprob > cellprob_threshold),
-                                               flows=dP, threshold=flow_threshold)
+                                           flows=dP, threshold=flow_threshold)
                 maski = utils.fill_holes_and_remove_small_masks(maski)
                 maski = transforms.resize_image(maski, shape[-3], shape[-2],
-                                                    interpolation=cv2.INTER_NEAREST)
+                                                interpolation=cv2.INTER_NEAREST)
                 flows.append([dx_to_circ(dP), dP, cellprob, p])
                 masks.append(maski)
                 flow_time += time.time() - tic
@@ -334,7 +345,6 @@ class CellposeModel(UnetModel):
                     flows.append([None] * 3)
                     masks.append([])
                 return y
-
 
 
 class SizeModel():
@@ -363,7 +373,8 @@ class SizeModel():
         if not hasattr(self.cp, 'pretrained_model'):
             raise ValueError('provided model does not have a pretrained_model')
 
-    def eval(self, imgs=None, styles=None, channels=None, normalize=True, invert=False, augment=False, tile=True,
+    def eval(self, imgs=None, styles=None, channels=None, normalize=True, invert=False,
+             augment=False, tile=True,
              batch_size=8):
         """ Use images imgs to produce style or use style input to predict size of objects in image
             Object size estimation is done in two steps:
@@ -383,7 +394,6 @@ class SizeModel():
             invert(bool): default False.Invert image pixel intensity before running network
             augment(bool):  default False.tiles image with overlapping tiles and flips overlapped regions to augment
             tile(bool):  default True.tiles image to ensure GPU/CPU memory usage limited (recommended)
-
         Returns:
             diam(array[float]): final estimated diameters from images x or styles style after running both steps
             diam_style(array[float]): estimated diameters from style alone
@@ -391,12 +401,13 @@ class SizeModel():
         """
 
         if imgs is not None:
-            x, nolist = convert_images(imgs.copy(), channels,  normalize, invert)
+            x, nolist = convert_images(imgs.copy(), channels, normalize, invert)
             nimg = len(x)
 
         if styles is None:
             logger.info(f'computing styles from images')
-            styles = self.cp.eval(x, net_avg=False, augment=augment, tile=tile, compute_masks=True, not_compute=False)[
+            styles = self.cp.eval(x, net_avg=False, augment=augment, tile=tile, compute_masks=True,
+                                  not_compute=False)[
                 -1]
             diam_style = self._size_estimation(np.array(styles))
 
@@ -413,7 +424,7 @@ class SizeModel():
             diam[np.isnan(diam)] = self.diam_mean
         else:
             diam = diam_style
-            print('no images provided, using diameters estimated from styles alone')
+            logger.info('no images provided, using diameters estimated from styles alone')
         if nolist:
             return diam[0], diam_style[0]
         else:

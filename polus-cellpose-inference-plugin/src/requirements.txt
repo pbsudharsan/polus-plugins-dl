@@ -4,3 +4,4 @@ zarr ==2.5.0
 numba==0.51.2
 opencv-contrib-python ==4.4.0.44
 torch == 1.7.1
+bfio==2.0.4

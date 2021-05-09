@@ -4,7 +4,9 @@ Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tr
 
 '''
 import numpy as np
+
 import dynamics
+
 
 def flow_error(maski, dP_net):
     """ Error in flows from predicted masks vs flows predicted by network run on image
@@ -27,16 +29,16 @@ def flow_error(maski, dP_net):
         return
     maski = np.reshape(np.unique(maski.astype(np.float32), return_inverse=True)[1], maski.shape)
     # flows predicted from estimated masks
-    dP_masks,_ = dynamics.masks_to_flows(maski)
+    dP_masks, _ = dynamics.masks_to_flows(maski)
     iun = np.unique(maski)[1:]
-    flow_errors=np.zeros((len(iun),))
-    for i,iu in enumerate(iun):
-        ii = maski==iu
-        if dP_masks.shape[0]==2:
-            flow_errors[i] += ((dP_masks[0][ii] - dP_net[0][ii]/5.)**2
-                            + (dP_masks[1][ii] - dP_net[1][ii]/5.)**2).mean()
+    flow_errors = np.zeros((len(iun),))
+    for i, iu in enumerate(iun):
+        ii = maski == iu
+        if dP_masks.shape[0] == 2:
+            flow_errors[i] += ((dP_masks[0][ii] - dP_net[0][ii] / 5.) ** 2
+                               + (dP_masks[1][ii] - dP_net[1][ii] / 5.) ** 2).mean()
         else:
-            flow_errors[i] += ((dP_masks[0][ii] - dP_net[0][ii]/5.)**2 * 0.5
-                            + (dP_masks[1][ii] - dP_net[1][ii]/5.)**2
-                            + (dP_masks[2][ii] - dP_net[2][ii]/5.)**2).mean()
+            flow_errors[i] += ((dP_masks[0][ii] - dP_net[0][ii] / 5.) ** 2 * 0.5
+                               + (dP_masks[1][ii] - dP_net[1][ii] / 5.) ** 2
+                               + (dP_masks[2][ii] - dP_net[2][ii] / 5.) ** 2).mean()
     return flow_errors, dP_masks

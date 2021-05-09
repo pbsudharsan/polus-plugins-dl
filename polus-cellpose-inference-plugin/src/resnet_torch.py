@@ -11,6 +11,14 @@ import torch.nn.functional as F
 sz = 3
 
 def convbatchrelu(in_channels, out_channels, sz):
+    """ Performs 2d convolution,normalisation and relu activation serially
+      Args:
+          in_channels(int):number of channels in input image
+          out_channels(int):number of channels in output image
+          sz(int): kernel size
+      Returns:
+          _ :Module that performs 2d convolution,normalisation and relu activation
+    """
     return nn.Sequential(
         nn.Conv2d(in_channels, out_channels, sz, padding=sz//2),
         nn.BatchNorm2d(out_channels, eps=1e-5),
@@ -18,6 +26,14 @@ def convbatchrelu(in_channels, out_channels, sz):
     )  
 
 def batchconv(in_channels, out_channels, sz):
+    """ Performs normalisation ,relu activation and 2d convolution serially
+         Args:
+             in_channels(int):number of channels in input image
+             out_channels(int):number of channels in output image
+             sz(int): kernel size
+         Returns:
+             _ :Module that performs normalisation ,relu activation and 2d convolution
+    """
     return nn.Sequential(
         nn.BatchNorm2d(in_channels, eps=1e-5),
         nn.ReLU(inplace=True),
@@ -25,6 +41,14 @@ def batchconv(in_channels, out_channels, sz):
     )  
 
 def batchconv0(in_channels, out_channels, sz):
+    """ Performs normalisation and 2d convolution serially
+       Args:
+           in_channels(int):number of channels in input image
+           out_channels(int):number of channels in output image
+           sz(int): kernel size
+       Returns:
+           _ :Module that performs normalisation and 2d convolution
+     """
     return nn.Sequential(
         nn.BatchNorm2d(in_channels, eps=1e-5),
         nn.Conv2d(in_channels, out_channels, sz, padding=sz//2),
@@ -32,6 +56,13 @@ def batchconv0(in_channels, out_channels, sz):
 
 class resdown(nn.Module):
     def __init__(self, in_channels, out_channels, sz):
+        """  Class for residual blocks
+        Attributes:
+            in_channels(int):number of channels in input image
+           out_channels(int):number of channels in output image
+           sz(int): kernel size
+
+        """
         super().__init__()
         self.conv = nn.Sequential()
         self.proj  = batchconv0(in_channels, out_channels, 1)
@@ -42,12 +73,27 @@ class resdown(nn.Module):
                 self.conv.add_module('conv_%d'%t, batchconv(out_channels, out_channels, sz))
                 
     def forward(self, x):
+        """ Forward pass for residual blocks
+        Args:
+            x(array[float32]): input array
+        Returns:
+            x(array[float32]):  array after performing series of normalisation and convolution
+                               operations
+
+        """
         x = self.proj(x) + self.conv[1](self.conv[0](x))
         x = x + self.conv[3](self.conv[2](x))
         return x
 
 class convdown(nn.Module):
     def __init__(self, in_channels, out_channels, sz):
+        """  Class for down convolution
+        Attributes:
+            in_channels(int):number of channels in input image
+           out_channels(int):number of channels in output image
+           sz(int): kernel size
+
+        """
         super().__init__()
         self.conv = nn.Sequential()
         for t in range(2):
@@ -202,9 +248,20 @@ class CPnet(nn.Module):
         return T0, style0
 
     def save_model(self, filename):
+        """ Saves pretrained model
+        Args:
+            filename(str): filename
+
+        """
         torch.save(self.state_dict(), filename)
 
     def load_model(self, filename, cpu=False):
+        """ Loads pretrained model
+        Args:
+            filename(str): filename
+            cpu(bool) : loading using cpu/gpu
+
+        """
         if not cpu:
             self.load_state_dict(torch.load(filename))
         else:

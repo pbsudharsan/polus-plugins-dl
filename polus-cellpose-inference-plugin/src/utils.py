@@ -3,12 +3,15 @@
 Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
 
 '''
-from scipy.ndimage import find_objects, binary_fill_holes
-import numpy as np
 import colorsys
-import os, tempfile,shutil
-from tqdm import tqdm
+import os
+import shutil
+import tempfile
 from urllib.request import urlopen
+
+import numpy as np
+from scipy.ndimage import find_objects, binary_fill_holes
+from tqdm import tqdm
 
 
 def rgb_to_hsv(arr):
@@ -22,8 +25,9 @@ def rgb_to_hsv(arr):
     rgb_to_hsv_channels = np.vectorize(colorsys.rgb_to_hsv)
     r, g, b = np.rollaxis(arr, axis=-1)
     h, s, v = rgb_to_hsv_channels(r, g, b)
-    hsv = np.stack((h,s,v), axis=-1)
+    hsv = np.stack((h, s, v), axis=-1)
     return hsv
+
 
 def hsv_to_rgb(arr):
     """Convert array from hsv to rgb color system
@@ -36,8 +40,9 @@ def hsv_to_rgb(arr):
     hsv_to_rgb_channels = np.vectorize(colorsys.hsv_to_rgb)
     h, s, v = np.rollaxis(arr, axis=-1)
     r, g, b = hsv_to_rgb_channels(h, s, v)
-    rgb = np.stack((r,g,b), axis=-1)
+    rgb = np.stack((r, g, b), axis=-1)
     return rgb
+
 
 def diameters(masks):
     """ Fet median 'diameter' of masks
@@ -50,11 +55,12 @@ def diameters(masks):
     """
     _, counts = np.unique(np.int32(masks), return_counts=True)
     counts = counts[1:]
-    md = np.median(counts**0.5)
+    md = np.median(counts ** 0.5)
     if np.isnan(md):
         md = 0
-    md /= (np.pi**0.5)/2
-    return md, counts**0.5
+    md /= (np.pi ** 0.5) / 2
+    return md, counts ** 0.5
+
 
 def normalize99(img):
     """ normalize image so 0.0 is 1st percentile and 1.0 is 99th percentile
@@ -66,6 +72,7 @@ def normalize99(img):
     X = img.copy()
     X = (X - np.percentile(X, 1)) / (np.percentile(X, 99) - np.percentile(X, 1))
     return X
+
 
 def fill_holes_and_remove_small_masks(masks, min_size=15):
     """ Fill holes in masks (2D/3D) and discard masks smaller than min_size (2D)
@@ -80,25 +87,26 @@ def fill_holes_and_remove_small_masks(masks, min_size=15):
     
     """
     if masks.ndim > 3 or masks.ndim < 2:
-        raise ValueError('masks_to_outlines takes 2D or 3D array, not %dD array'%masks.ndim)
-    
+        raise ValueError('masks_to_outlines takes 2D or 3D array, not %dD array' % masks.ndim)
+
     slices = find_objects(masks)
     j = 0
-    for i,slc in enumerate(slices):
+    for i, slc in enumerate(slices):
         if slc is not None:
-            msk = masks[slc] == (i+1)
+            msk = masks[slc] == (i + 1)
             npix = msk.sum()
             if min_size > 0 and npix < min_size:
                 masks[slc][msk] = 0
-            else:    
-                if msk.ndim==3:
+            else:
+                if msk.ndim == 3:
                     for k in range(msk.shape[0]):
                         msk[k] = binary_fill_holes(msk[k])
                 else:
                     msk = binary_fill_holes(msk)
-                masks[slc][msk] = (j+1)
-                j+=1
+                masks[slc][msk] = (j + 1)
+                j += 1
     return masks
+
 
 def download_url_to_file(url, dst, progress=True):
     """Download object at the given URL to a local path.
