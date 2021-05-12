@@ -1,6 +1,6 @@
 '''
 
-Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
 
 '''
 import numpy as np
@@ -20,14 +20,14 @@ def _extend_centers(T, y, x, ymed, xmed, Lx, niter):
     """ Run diffusion from center of mask (ymed, xmed) on mask pixels (y, x)
     Args:
         T(array[float64]): _ x Lx array that diffusion is run in
-        y(array[int32]): pixels in y inside mask
-        x(array[int32]): pixels in x inside mask
-        ymed(int32): center of mask in y
-        xmed(int32): center of mask in x
-        Lx(int32): size of x-dimension of masks
-        niter(int32): number of iterations to run diffusion
+        y(array[int32]): Pixels in y inside mask
+        x(array[int32]): Pixels in x inside mask
+        ymed(int32): Center of mask in y
+        xmed(int32): Center of mask in x
+        Lx(int32): Size of x-dimension of masks
+        niter(int32): Number of iterations to run diffusion
     Returns:
-        T(array[float64]): amount of diffused particles at each pixel
+        T(array[float64]): Amount of diffused particles at each pixel
 
     """
 
@@ -45,10 +45,10 @@ def masks_to_flows(masks):
     to be the closest pixel to the median of all pixels that is inside the mask. Result of diffusion is converted
     into flows by computing the gradients of the diffusion density map.
     Args:
-        masks(array[int]):  2D or 3D array.labelled masks 0=NO masks; 1,2,...=mask labels
+        masks(array[int]): 2D or 3D array.labelled masks 0=NO masks; 1,2,...=mask labels
     Returns:
         mu(array[float]): 3D or 4D array.flows in Y = mu[-2], flows in X = mu[-1].if masks are 3D, flows in Z = mu[0].
-        mu_c(array[float]):  2D or 3D array.for each pixel, the distance to the center of the mask in which it resides
+        mu_c(array[float]): 2D or 3D array.for each pixel, the distance to the center of the mask in which it resides
 
     """
     if masks.ndim > 2:
@@ -112,7 +112,7 @@ def map_coordinates(I, yc, xc, Y):
         I(array[float32]) : C x Ly x Lx
         yc(array[float32]) : ni new y coordinates
         xc(array[float32]) : ni new x coordinates
-        Y (array[float32]): C x ni I sampled at (yc,xc)
+        Y(array[float32]): C x ni I sampled at (yc,xc)
 
     """
     C, Ly, Lx = I.shape
@@ -135,6 +135,15 @@ def map_coordinates(I, yc, xc, Y):
 
 
 def steps2D_interp(p, dP, niter, use_gpu=False):
+    """ Run interpolated dynamics
+    Args:
+        p(array[float32]): 3D array.pixel locations [axis x Ly x Lx] (start at initial meshgrid)
+        dP(array[float32]): 3D array.flows [axis x Ly x Lx]
+        niter(int32): Number of iterations of dynamics to run
+        use_gpu(bool): Default False. Use GPU to run interpolated dynamics (faster than CPU)
+    Returns:
+         p(array[float32]): 3D array.final locations of each pixel after dynamics
+    """
     shape = dP.shape[1:]
 
     if use_gpu:
@@ -199,10 +208,10 @@ def follow_flows(dP, niter=200, interp=True, use_gpu=False):
     """ Define pixels and run dynamics to recover masks in 2D. Pixels are meshgrid. Only pixels with non-zero cell-probability
     are used (as defined by inds)
     Args:
-        dP(float32):  3D or 4D array.flows [axis x Ly x Lx] or [axis x Lz x Ly x Lx]
-        niter(int): default 200.number of iterations of dynamics to run
-        interp(bool): default True.interpolate during 2D dynamics  (in previous versions + paper it was False)
-        use_gpu(bool): default False.use GPU to run interpolated dynamics (faster than CPU)
+        dP(float32): 3D or 4D array.flows [axis x Ly x Lx] or [axis x Lz x Ly x Lx]
+        niter(int): Default 200.number of iterations of dynamics to run
+        interp(bool): Default True.interpolate during 2D dynamics  (in previous versions + paper it was False)
+        use_gpu(bool): Default False.use GPU to run interpolated dynamics (faster than CPU)
     Returns:
         p(array[float32]): 3D array.final locations of each pixel after dynamics
 
@@ -231,12 +240,11 @@ def remove_bad_flow_masks(masks, flows, threshold=0.4):
     """ Remove masks which have inconsistent flows.Uses metrics.flow_error to compute flows from predicted masks and
     compare flows to predicted flows from network. Discards masks with flow errors greater than the threshold.
     Args:
-        masks(array[int]): labelled masks, 0=NO masks; 1,2,...=mask labels,size [Ly x Lx] or [Lz x Ly x Lx]
+        masks(array[int]): Labelled masks, 0=NO masks; 1,2,...=mask labels,size [Ly x Lx] or [Lz x Ly x Lx]
         flows(array[float]): 3D or 4D array.flows [axis x Ly x Lx] or [axis x Lz x Ly x Lx]
         threshold(float):  default 0.4.masks with flow error greater than threshold are discarded.
     Returns:
-        masks(array[int]): int, 2D or 3D array masks with inconsistent flow masks removed,0=NO masks; 1,2,...=mask labels,
-        size [Ly x Lx] or [Lz x Ly x Lx]
+        masks(array[int]): 2D masks with inconsistent flow masks removed,0=NO masks; 1,2,...=mask labels,
     
     """
     merrors, _ = metrics.flow_error(masks, flows)
@@ -250,14 +258,13 @@ def get_masks(p, iscell=None, rpad=20, flows=None, threshold=0.4):
     masks at peaks of histogram and extends the masks from the peaks so that they include all pixels with more than 2 final pixels p.
     Discards masks with flow errors greater than the threshold.
     Args:
-        p(array[float32]):final locations of each pixel after dynamics,size [axis x Ly x Lx] or [axis x Lz x Ly x Lx].
-        iscell(array[bool]): if iscell is not None, set pixels that are iscell False to stay in their original location.
-        rpad(int):  default 20.histogram edge padding
-        threshold(float): default 0.4.masks with flow error greater than threshold are discarded (if flows is not None)
-        flows(array[float]): 3D or 4D array.flows [axis x Ly x Lx] or [axis x Lz x Ly x Lx]. If flows is not None, then masks
-        with inconsistent flows are removed using`remove_bad_flow_masks`.
+        p(array[float32]): Final locations of each pixel after dynamics,size [axis x Ly x Lx] or [axis x Lz x Ly x Lx].
+        iscell(array[bool]): If iscell is not None, set pixels that are iscell False to stay in their original location.
+        rpad(int): Default 20.histogram edge padding
+        threshold(float): Default 0.4.masks with flow error greater than threshold are discarded (if flows is not None)
+        flows(array[float]): If flows is not None, then masks with inconsistent flows are removed using`remove_bad_flow_masks`.
     Returns:
-        M0(array[int]):masks with inconsistent flow masks removed, 0=NO masks; 1,2,...=mask labels,size [Ly x Lx] or [Lz x Ly x Lx]
+        M0(array[int]): Masks with inconsistent flow masks removed, 0=NO masks; 1,2,...=mask labels,size [Ly x Lx] or [Lz x Ly x Lx]
     
     """
 

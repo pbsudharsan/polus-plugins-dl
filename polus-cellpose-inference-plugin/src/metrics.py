@@ -1,6 +1,6 @@
 '''
 
-Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
 
 '''
 import numpy as np
@@ -16,10 +16,10 @@ def flow_error(maski, dP_net):
     If there is a discrepancy between the flows, it suggests that the mask is incorrect.
     Args:
         maski(array[int]): ND-array.masks produced from running dynamics on dP_net,
-        where 0=NO masks; 1,2... are mask labels
+                          where 0=NO masks; 1,2... are mask labels
         dP_net(array[float]): ND-array.ND flows where dP_net.shape[1:] = maski.shape
     Returns:
-        flow_errors(array[float]): float array with length maski.max()
+        flow_errors(array[float]): Float array with length maski.max()
         mean squared error between predicted flows and flows from masks
         dP_masks(array[float]): ND-array.ND flows produced from the predicted masks
     

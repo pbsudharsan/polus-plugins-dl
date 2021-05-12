@@ -1,6 +1,6 @@
 '''
 
-Code sourced  code  from Cellpose repo  https://github.com/MouseLand/cellpose/tree/master/cellpose
+Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
 
 '''
 import warnings
@@ -390,10 +390,10 @@ def random_rotate_and_resize(X, Y=None, scale_range=1., xy=(224, 224),
 def _X2zoom(img, X2=1):
     """ Zoom in image
     Args:
-        img(array) : numpy array that's Ly x Lx
+        img(array) : Numpy array that's Ly x Lx
 
     Returns:
-        img(array) : numpy array that's Ly x Lx
+        img(array) : Numpy array that's Ly x Lx
 
     """
     ny, nx = img.shape[:2]
@@ -404,11 +404,11 @@ def _X2zoom(img, X2=1):
 def _image_resizer(img, resize=512, to_uint8=False):
     """ Resize image
     Args:
-        img(array) : numpy array that's Ly x Lx
-        resize(int) : max size of image returned
-        to_uint8(bool) : convert image to uint8
+        img(array) : Numpy array that's Ly x Lx
+        resize(int) : Max size of image returned
+        to_uint8(bool) : Convert image to uint8
     Returns:
-        img(array) : numpy array that's Ly x Lx, Ly,Lx<resize
+        img(array) : Numpy array that's Ly x Lx, Ly,Lx<resize
     """
     ny, nx = img.shape[:2]
     if to_uint8:

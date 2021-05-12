@@ -70,12 +70,12 @@ def main():
 
     # Input arguments
     parser.add_argument('--diameter', dest='diameter', type=float, default=30.,
-                        help='cell diameter, if 0 cellpose will estimate for each image',
+                        help='Cell diameter, if 0 cellpose will estimate for each image',
                         required=False)
     parser.add_argument('--inpDir', dest='inpDir', type=str,
                         help='Input image collection to be processed by this plugin', required=True)
     parser.add_argument('--pretrainedModel', dest='pretrainedModel', type=str,
-                        help='model to use', required=False)
+                        help='Model to use', required=False)
 
     # Output arguments
     parser.add_argument('--outDir', dest='outDir', type=str,
@@ -126,7 +126,6 @@ def main():
         for f in inpDir_files:
             # Loop through files in inpDir image collection and process
             br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
-            #  tile_size = min(TILE_SIZE,br.X)
             logger.info('Processing image %s ', f)
 
             # Saving pixel locations and probablity  as zarr datasets and metadata as string

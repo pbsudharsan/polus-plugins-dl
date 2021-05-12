@@ -22,5 +22,4 @@ RUN apt-get -y install libgomp1 gfortran libglib2.0.0 libgles2-mesa-dev
 
 RUN  pip3 install -r ${EXEC_DIR}/requirements.txt --no-cache-dir
 
-
 ENTRYPOINT ["python3", "main.py"]

@@ -10,7 +10,7 @@ flows that can be predicted by a neural network, and a large segmented dataset o
 cells.
 
 Apart from allowing user to specify the type of segmentation this plugin allows the user to choose
-the diameter of cells as well as has option to input custom pretrained model.
+the diameter of cells as well as has the option to input custom pretrained model.
 
 Things to keep in mind when choosing the diameter and inputting custom model
 
@@ -24,8 +24,8 @@ Things to keep in mind when choosing the diameter and inputting custom model
 
 3. By default, the plugin will use cyto as a pretrained model.
 
-This plugin saves the predicted vector field as  a zarr array. Code has been tested with CUDA 10.1 , bfio:
-2.0.4 and runs on GPU by default.
+This plugin saves the predicted vector field as a zarr array. Code has been tested with CUDA 10.1 ,
+bfio:2.0.4 and runs on GPU by default.
 
 ## Building
 
