@@ -1,3 +1,5 @@
+# Code sourced from https://github.com/MouseLand/cellpose/tree/master/cellpose
+
 import os, pathlib
 import numpy as np
 
@@ -11,15 +13,12 @@ class CellposeModel(UnetModel):
     """ Class for cellpose model
     Args:
      gpu(bool): Whether or not to save model to GPU, will check if GPU available
-     pretrained_model(str): Path to pretrained cellpose model(s), if False, no model loaded;
-     if None, built-in 'cyto' model loaded
-     net_avg(bool): Default True.Loads the 4 built-in networks and averages them if True, loads one network if False
-     diam_mean(float): Default 27.Mean 'diameter', 27. is built in value for 'cyto' model
-     device(torch): Where model is saved (torch.gpu() or torch.cpu()), overrides gpu input,
-                    recommended if you want to use a specific GPU (e.g. mx.gpu(4))
+     pretrained_model(str): Path to pretrained cellpose model(s).
+     net_avg(bool): Default True. Loads the 4 built-in networks and averages them if True, loads one network if False
+     diam_mean(float): Default 27. Mean 'diameter', 27. Is built in value for 'cyto' model
+     device(torch): Where model is saved (torch.gpu() or torch.cpu())
 
     """
-
     def __init__(self, gpu=False,model_type=None ,pretrained_model=False, torch=True,
                  diam_mean=30., net_avg=True, device=None,
                  residual_on=True, style_on=True, concatenation=False):
@@ -66,13 +65,12 @@ class CellposeModel(UnetModel):
     def loss_fn(self, lbl, y):
         """ Loss function between true labels lbl and prediction y
         Args:
-            lbl(array[float32]): label of given images
-            y(array[float32]) : predicted label of given images
+            lbl(array[float32]): Labeled images
+            y(array[float32]) : Predicted label of given images
         Returns:
             loss(float): BCEWithLogitsLoss + MSE loss
 
         """
-
         veci = 5. * self._to_device(lbl[:, 1:])
         lbl = self._to_device(lbl[:, 0] > .5)
         loss = self.criterion(y[:, :2], veci)
@@ -85,32 +83,30 @@ class CellposeModel(UnetModel):
     def train(self, train_data, train_labels, train_files=None,
               test_data=None, test_labels=None, test_files=None,
               channels=None, normalize=True, pretrained_model=None,
-              save_path=None, save_every=5,
+              save_path=None, save_every=20,
               learning_rate=0.2, n_epochs=500, momentum=0.9, weight_decay=0.00001, batch_size=8, rescale=True):
         """ Train network with images train_data
         Args:
             train_data(list[array]): Images for training
             train_labels(list[array]): Labels for train_data, where 0=no masks; 1,2,...=mask labels
-                can include flows as additional images
             train_files(list[string]): File names for images in train_data (to save flows for future runs)
             test_data(list[array]): Images for testing
-            test_labels(list[array]): Labels for test_data, where 0=no masks; 1,2,...=mask labels;can include flows as additional images
-            test_files(list[string]): File names for images in test_data (to save flows for future runs)
+            test_labels(list[array]): Labels for test_data, where 0=no masks; 1,2,...=mask labels
+            test_files(list[string]): File names for images in test_data (to save flows for future runs
             channels(list[int]): Channels to use for training
             normalize(bool): Normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel
             pretrained_model(string): Path to pretrained_model to start from, if None it is trained from scratch
             save_path(string): Where to save trained model, if None it is not saved
-            save_every(int): Default 100.Save network every [save_every] epochs
-            learning_rate(float): Default 0.2.Learning rate for training
-            n_epochs(int): Default 500.How many times to go through whole training set during training
-            weight_decay(float): Default 0.00001.
+            save_every(int): Default 100. Save network every [save_every] epochs
+            learning_rate(float): Default 0.2. Learning rate for training
+            n_epochs(int): Default 500. How many times to go through whole training set during training
+            weight_decay(float): Default 0.00001. Weight decay
             batch_size(int): Default 8. Number of 224x224 patches to run simultaneously on the GPU
-            rescale(bool): Whether or not to rescale images to diam_mean during training,
+            rescale(bool): Whether or not to rescale images to diam_mean during training
         Returns:
             model_path(str): Model path
 
         """
-
         train_data, train_labels, test_data, test_labels, run_test = transforms.reshape_train_test(train_data,
                                                                                                    train_labels ,
                                                                                                    test_data,

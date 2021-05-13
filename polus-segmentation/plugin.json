@@ -1,79 +1,163 @@
 {
-    "name": "Cellpose-inference ",
-    "version": "0.1.1",
-    "title": "Cellpose-inference  ",
-    "description": "Semantic segmentation of cell/nuclei",
-    "author": "Sudharsan (sudharsan.prativadi@labshare.org)",
-    "institution": "National Center for Advancing Translational Sciences, National Institutes of Health",
-    "repository": "https://github.com/labshare/polus-plugins",
-    "website": "https://ncats.nih.gov/preclinical/core/informatics",
-    "citation": "Cellpose a generalist, deep learning-based segmentation algorithm which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments, https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1",
-    "containerId": "labshare/polus-cellpose-inference-plugin:0.1.9",
-    "inputs": [
-      {
-        "name": "diameter",
-        "type": "integer",
-        "description": "Default Diameter  is 30 enter 0   to  use cellpose to calculate the diameter or value of  choice",
-        "required": false
+  "name": "Cellpose Training ",
+  "version": "0.1.3",
+  "title": "Cellpose Training  ",
+  "description": "Training Neural network to segment cyto/nuclei",
+  "author": "Sudharsan Prativadi(sudharsan.prativadi@labshare.org)",
+  "institution": "National Center for Advancing Translational Sciences, National Institutes of Health",
+  "repository": "https://github.com/labshare/polus-plugins",
+  "website": "https://ncats.nih.gov/preclinical/core/informatics",
+  "citation": "Cellpose a generalist, deep learning-based segmentation algorithm which can very precisely segment a wide range of image types out-of-the-box and does not require model retraining or parameter adjustments, https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1",
+  "containerId": "labshare/polus-cellpose-training-plugin:0.1.3",
+  "inputs": [
+    {
+      "name": "diameter",
+      "type": "integer",
+      "description": "Default Diameter is 30 for cyto and 17 for nuclei. If diameter is 0 there will be no rescaling ",
+      "required": false
+    },
+    {
+      "name": "inpDir",
+      "type": "collection",
+      "description": "Input image collection to be processed by this plugin",
+      "required": true
+    },
+    {
+      "name": "pretrainedModel",
+      "type": "enum",
+      "description": "Choose cell/nuclei to segment",
+      "options": {
+        "values": [
+          "cyto",
+          "nuclei",
+          "custom"
+        ]
       },
-      {
-        "name": "inpDir",
-        "type": "collection",
-        "description": "Input image collection to be processed by this plugin",
-        "required": true
-      },
-      {
-        "name": "pretrained_model",
-        "type": "string",
-        "description": "Choose cell/nuclei to segment",
-        "required": true
-      },
-      {
-        "name": "chan",
-        "type": "integer",
-        "description": "Channel to segment( 1:Red ,2:  Green ,3 :blue) Ignore for greyscaale images ",
-        "required": false
-      },
-      {
-        "name": "chan2",
-        "type": "integer",
-        "description": "2nd channel to segment 1:Red ,2:  Green ,3 :blue) Ignore for greyscaale images",
-        "required": false
-      }
-    ],
-    "outputs": [
-      {
-        "name": "outDir",
-        "type": "genericData",
-        "description": "Output collection"
-      }
-    ],
-    "ui": [
-      {
-        "key": "inputs.inpDir",
-        "title": "Input collection",
-        "description": "Input image collection to be processed by this plugin"
-      },
-      {
-        "key": "inputs.diameter",
-        "title": "Diameter ",
-        "description": "Diameter"
-      },
-
-      {
-        "key": "inputs.pretrained_model",
-        "title": "Model to use(Cyto/nuclei)",
-        "description": " Object that needs to be segmented "
-      },
-      {
-        "key": "inputs.chan",
-        "title": "Channel to segment",
-        "description": "Channel that needs to be segmented"
-      },
-      {
-        "key": "inputs.chan2",
-        "title": "2nd Channel to segment",
-        "description": "2nd channel "
-      }
-    ]
-  }
+      "required": true
+    },
+    {
+      "name": "cpretrainedModel",
+      "type": "tensorflowModel",
+      "description": "Select the custom pretrained model for segmentation",
+      "required": true
+    },
+    {
+      "name": "flowPath",
+      "type": "genericData",
+      "description": "Vector field of Labelled images",
+      "required": true
+    },
+    {
+      "name": "learningRate",
+      "type": "integer",
+      "description": "Learning rate.  Default 0.2",
+      "required": false
+    },
+    {
+      "name": "nEpochs",
+      "type": "integer",
+      "description": "No of Epochs. Default 500",
+      "required": false
+    },
+    {
+      "name": "batchSize",
+      "type": "integer",
+      "description": "Batch size for training. Default 8",
+      "required": false
+    },
+    {
+      "name": "residualOn",
+      "type": "boolean",
+      "description": "Use residual connections. Default True",
+      "required": false
+    },
+    {
+      "name": "styleOn",
+      "type": "boolean",
+      "description": "Use style vectors. Default True",
+      "required": false
+    },
+    {
+      "name": "concatenation",
+      "type": "boolean",
+      "description": "Concatenate downsampled layers with upsampled layers (off by default which means they are added). Default False",
+      "required": false
+    },
+    {
+      "name": "trainFraction",
+      "type": "integer",
+      "description": "Test train split. Default 0.8",
+      "required": false
+    }
+  ],
+  "outputs": [
+    {
+      "name": "outDir",
+      "type": "tensorflowModel",
+      "description": "Model weights"
+    }
+  ],
+  "ui": [
+    {
+      "key": "inputs.inpDir",
+      "title": "Input collection",
+      "description": "Input image collection to be processed by this plugin"
+    },
+    {
+      "key": "inputs.diameter",
+      "title": "Diameter ",
+      "description": "Diameter"
+    },
+    {
+      "key": "inputs.pretrainedModel",
+      "title": "Model to use(Cyto/nuclei)",
+      "description": "Object that needs to be segmented"
+    },
+    {
+      "key": "inputs.cpretrainedModel",
+      "title": "Pretrained Model of choice",
+      "description": "Path to pretrained Model to run the images",
+      "condition": "model.inputs.pretrainedModel=='custom'"
+    },
+    {
+      "key": "inputs.flowPath",
+      "title": "  Vector field of Labelled images",
+      "description": "Path to zarr file. Output of Label to Vector plugin"
+    },
+    {
+      "key": "inputs.learningRate",
+      "title": "Learning rate",
+      "description": "Learning rate for training"
+    },
+    {
+      "key": "inputs.nEpochs",
+      "title": "No of epochs",
+      "description": "No of epochs for training"
+    },
+    {
+      "key": "inputs.batchSize",
+      "title": "Batch size",
+      "description": "Batch size for training"
+    },
+    {
+      "key": "inputs.residualOn",
+      "title": "Use residual net",
+      "description": "Batch size for training"
+    },
+    {
+      "key": "inputs.styleOn",
+      "title": " Use style vector ",
+      "description": "Use style vector"
+    },
+    {
+      "key": "inputs.concatenation",
+      "title": "Use concatenation ",
+      "description": "Concatenate downsampled layers with upsampled layers (off by default)"
+    },
+    {
+      "key": "inputs.trainFraction",
+      "title": "Train fraction",
+      "description": "Test train split"
+    }
+  ]
+}

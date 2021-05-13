@@ -1,6 +1,7 @@
-import numpy as np
 import warnings
+
 import cv2
+import numpy as np
 
 
 def normalize99(img):
@@ -24,7 +25,7 @@ def reshape(data, channels=[0, 0], chan_first=False):
     channels(list[int]): channel to segment
     invert(bool) : Invert intensities
     Returns:
-    data(array): numpy array that's (Z x ) Ly x Lx x nchan (if chan_first==False)
+    data(array): Numpy array that's (Z x ) Ly x Lx x nchan (if chan_first==False)
 
     """
     data = data.astype(np.float32)
@@ -67,7 +68,7 @@ def normalize_img(img, axis=-1, invert=False):
     """ Normalize each channel of the image so that so that 0.0=1st percentile
     and 1.0=99th percentile of image intensities.
     Args:
-    img(array[float]): ND-array.Unlabeled array
+    img(array[float]): ND-array. Unlabeled array
     axis(int): Channel axis to loop over for normalization
     Returns:
     img(array[float]): Normalized image of same size
@@ -93,9 +94,16 @@ def reshape_train_test(train_data, train_labels, test_data, test_labels, channel
     train_data(list[float]): List of training images of size [Ly x Lx]
     train_labels(list[float]): List of training labels of size [Ly x Lx x 3]
     test_data(list[float]): List of testing images of size [Ly x Lx]
-    test_labels(list[float]):  List of testing labels of size [Ly x Lx x 3]
-    channels(list[int]): channel to segment
+    test_labels(list[float]): List of testing labels of size [Ly x Lx x 3]
+    channels(list[int]): Channel to segment
     normalize(bool): Normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel
+    Returns:
+    train_data(list[float]): List of training images of size [2 x Ly x Lx]
+    train_labels(list[float]): List of training labels of size [Ly x Lx x 3]
+    test_data(list[float]): List of testing images of size [2 x Ly x Lx]
+    test_labels(list[float]): List of testing labels of size [Ly x Lx x 3]
+    run_test(bool): Whether or not test_data was correct size and is usable during training
+
     """
     nimg = len(train_data)
     # check that arrays are correct size
@@ -143,7 +151,7 @@ def reshape_and_normalize_data(train_data, test_data=None, channels=None, normal
     Returns:
     train_data(list[float]): List of training images of size [2 x Ly x Lx]
     test_data(list[float]): List of testing images of size [2 x Ly x Lx]
-    run_test(bool): Whether or not test_data was correct size and is useable during training
+    run_test(bool): Whether or not test_data was correct size and is usable during training
 
     """
     # if training data is less than 2D
@@ -195,17 +203,17 @@ def reshape_and_normalize_data(train_data, test_data=None, channels=None, normal
 def random_rotate_and_resize(X, Y=None, scale_range=1., xy=(224, 224),
                              do_flip=True, rescale=None, unet=False):
     """ Augmentation by random rotation and resizing.X and Y are lists or arrays of length nimg.
-        Args:
+    Args:
         X(list[float]): List of image arrays of size [Ly x Lx]
         Y(list[float]): List of image labels of size [nlabels x Ly x Lx] or [Ly x Lx].If Y.shape[0]==3
                         then the labels are assumed to be [cell probability, Y flow, X flow].
         scale_range(float): Range of resize of images for augmentation. Images are resized by
-            (1-scale_range/2) + scale_range * np.random.rand()
+        (1-scale_range/2) + scale_range * np.random.rand()
         xy(tuple[int]): Size of transformed images to return
         do_flip(bool): Whether or not to flip images horizontally
         rescale(array[float]): How much to resize images by before performing augmentations
         unet(bool): Set if unet model is used
-        Returns:
+    Returns:
         imgi(array[float]): Transformed images in array [nimg x nchan x xy[0] x xy[1]]
         lbl(array[float]): Transformed labels in array [nimg x nchan x xy[0] x xy[1]]
         scale(array[float]): Amount each image was resized by

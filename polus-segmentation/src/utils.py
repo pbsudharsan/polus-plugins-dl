@@ -1,3 +1,5 @@
+# Code sourced from https://github.com/MouseLand/cellpose/tree/master/cellpose
+
 import os, tempfile, shutil
 from tqdm import tqdm
 from urllib.request import urlopen
@@ -6,12 +8,11 @@ import numpy as np
 
 def download_url_to_file(url, dst, progress=True):
     """ Download object at the given URL to a local path.
-            Thanks to torch, slightly modified
     Args:
         url (string): URL of the object to download
         dst (string): Full path where object will be saved, e.g. `/tmp/temporary_file`
-        progress (bool, optional): whether or not to display a progress bar to stderr
-            Default: True
+        progress (bool, optional): Whether or not to display a progress bar to stderr
+
     """
     file_size = None
     u = urlopen(url)
@@ -47,8 +48,9 @@ def diameters(masks):
     Args:
         masks(array[float]): Label
     Return:
-        md(float): Median of  labels
+        md(float): Median of labels
         counts(float): The indices of the first occurrences of the unique values
+
     """
     _, counts = np.unique(np.int32(masks), return_counts=True)
     counts = counts[1:]
