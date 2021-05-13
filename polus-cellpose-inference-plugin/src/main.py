@@ -26,10 +26,10 @@ urls = [
 
 
 def download_model_weights(pretrained_model, urls=urls):
-    """ Downloading model weights  baimreadsed on segmentation
+    """ Downloading model weights  based on segmentation
     Args:
         pretrained_model(str): Cyto/nuclei Segementation
-        urls(list): list of urls for model weights
+        urls(list): lList of urls for model weights
 
     """
     # cellpose directory

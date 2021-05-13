@@ -1,8 +1,5 @@
-'''
+#Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
 
-Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
-
-'''
 import logging
 import os
 import pathlib
@@ -341,7 +338,7 @@ class CellposeModel(UnetModel):
 
 
 class SizeModel():
-    """ linear regression model for determining the size of objects in image used to rescale before input to cp_model
+    """ Linear regression model for determining the size of objects in image used to rescale before input to cp_model
         uses styles from cp_model.
     Args:
         cp_model: UnetModel or CellposeModel.model from which to get styles
@@ -408,7 +405,7 @@ class SizeModel():
                                  augment=augment, tile=tile, interp=False, compute_masks=True)[-2]
             diam = np.array([utils.diameters(masks[i])[0] for i in range(nimg)])
             diam[diam == 0] = self.diam_mean
-            diam[np.isnan(diam)] = self.diam_mean
+            diam[np.isnan(diam)] = self.diam_meanl
         else:
             diam = diam_style
             logger.info('no images provided, using diameters estimated from styles alone')

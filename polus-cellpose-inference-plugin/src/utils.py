@@ -1,8 +1,6 @@
-'''
 
-Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
+# Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
 
-'''
 import colorsys
 import os
 import shutil
@@ -79,10 +77,10 @@ def fill_holes_and_remove_small_masks(masks, min_size=15):
     """ Fill holes in masks (2D/3D) and discard masks smaller than min_size (2D)
     fill holes in each mask using scipy.ndimage.morphology.binary_fill_holes
     Args:
-        masks(array[int]): 2D or 3D array.labelled masks, 0=NO masks; 1,2,...=mask labels
-        min_size(int): Default 15.minimum number of pixels per mask, can turn off with -1
+        masks(array[int]): 2D or 3D array. Labelled masks, 0=NO masks; 1,2,...=mask labels
+        min_size(int): Default 15. Minimum number of pixels per mask, can turn off with -1
     Returns:
-        masks(array[int]): 2D or 3D array.masks with holes filled and masks smaller than min_size removed
+        masks(array[int]): 2D or 3D array. Masks with holes filled and masks smaller than min_size removed
     
     """
     if masks.ndim > 3 or masks.ndim < 2:

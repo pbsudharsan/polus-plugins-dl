@@ -12,12 +12,12 @@ sz = 3
 
 def convbatchrelu(in_channels, out_channels, sz):
     """ Performs 2d convolution,normalisation and relu activation serially
-      Args:
-          in_channels(int): Number of channels in input image
-          out_channels(int):Number of channels in output image
-          sz(int): Kernel size
-      Returns:
-          _ : Module that performs 2d convolution,normalisation and relu activation
+    Args:
+        in_channels(int): Number of channels in input image
+        out_channels(int): Number of channels in output image
+        sz(int): Kernel size
+    Returns:
+        _ : Module that performs 2d convolution,normalisation and relu activation
 
     """
     return nn.Sequential(
@@ -28,12 +28,12 @@ def convbatchrelu(in_channels, out_channels, sz):
 
 def batchconv(in_channels, out_channels, sz):
     """ Performs normalisation ,relu activation and 2d convolution serially
-         Args:
-             in_channels(int): Number of channels in input image
-             out_channels(int): Number of channels in output image
-             sz(int): Kernel size
-         Returns:
-             _ :Module that performs normalisation ,relu activation and 2d convolution
+    Args:
+        in_channels(int): Number of channels in input image
+        out_channels(int): Number of channels in output image
+        sz(int): Kernel size
+    Returns:
+        _ :Module that performs normalisation ,relu activation and 2d convolution
 
     """
     return nn.Sequential(
@@ -44,12 +44,12 @@ def batchconv(in_channels, out_channels, sz):
 
 def batchconv0(in_channels, out_channels, sz):
     """ Performs normalisation and 2d convolution serially
-       Args:
-           in_channels(int): Number of channels in input image
-           out_channels(int): Number of channels in output image
-           sz(int): Kernel size
-       Returns:
-           _ : Module that performs normalisation and 2d convolution
+    Args:
+        in_channels(int): Number of channels in input image
+        out_channels(int): Number of channels in output image
+        sz(int): Kernel size
+    Returns:
+        _ : Module that performs normalisation and 2d convolution
 
     """
     return nn.Sequential(
@@ -298,13 +298,13 @@ class upsample(nn.Module):
                     convup(nbase[n], nbase[n-1], nbase[-1], sz, concatenation))
 
     def forward(self, style, xd, mkldnn=False):
-        ''' Forward pass for upsampling
+        """ Forward pass for upsampling
         Args:
             style(array): Downsampled final vector
             xd(array): Concatenation array
             mkldnn(bool): True if mkldnn is available
 
-        '''
+        """
         x = self.up[-1](xd[-1], xd[-1], style, mkldnn=mkldnn)
         for n in range(len(self.up)-2,-1,-1):
             if mkldnn:

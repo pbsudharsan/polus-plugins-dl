@@ -1,8 +1,5 @@
-'''
+#Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
 
-Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
-
-'''
 import numpy as np
 
 import dynamics
@@ -21,7 +18,7 @@ def flow_error(maski, dP_net):
     Returns:
         flow_errors(array[float]): Float array with length maski.max()
         mean squared error between predicted flows and flows from masks
-        dP_masks(array[float]): ND-array.ND flows produced from the predicted masks
+        dP_masks(array[float]): ND flows produced from the predicted masks
     
     """
     if dP_net.shape[1:] != maski.shape:
