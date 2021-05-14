@@ -16,12 +16,8 @@ Things to keep in mind when choosing the diameter and inputting custom model
 
 1. Default diameter for cyto and nuclei models is 17 and 30 respectively.If 0 is passed as diameter
    plugin will estimate diameter for each image.
-
-
 2. Option to estimate diameter for each image will not be available if a custom model is an input.
    However, user-specified model diameter will be used.
-
-
 3. By default, the plugin will use cyto as a pretrained model.
 
 This plugin saves the predicted vector field as a zarr array. Code has been tested with CUDA 10.1 ,
