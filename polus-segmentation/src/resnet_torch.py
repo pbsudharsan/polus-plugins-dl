@@ -11,7 +11,7 @@ def convbatchrelu(in_channels, out_channels, sz):
     """ Performs 2d convolution,normalisation and relu activation serially
     Args:
        in_channels(int): Number of channels in input image
-       out_channels(int):Number of channels in output image
+       out_channels(int): Number of channels in output image
        sz(int): Kernel size
     Returns:
        _ : Module that performs 2d convolution,normalisation and relu activation
@@ -125,7 +125,7 @@ class downsample(nn.Module):
     """ Class for downsampling
     Args:
         nbase(list): Number of in channels
-        sz(int): kernel size
+        sz(int): Kernel size
         residual_on(bool): Unet parameter
 
     """
@@ -224,7 +224,7 @@ class resup(nn.Module):
         """ Function handling forward pass
         Args:
             x(array): Input array to residual block
-            y(array): Kernal size
+            y(array): Kernel size
             style(array): Vector after downsampling
             mkldnn(bool): True if mkldnn is available
         Returns:
@@ -258,7 +258,7 @@ class convup(nn.Module):
         """ Function handling forward pass
         Args:
             x(array): Array to perform upconvolution on
-            y(array): Kernal size
+            y(array): Kernel size
             style(array): Vector after downsampling
         Returns:
             x(array):  Array after upconvolution

@@ -135,7 +135,7 @@ if __name__ == "__main__":
     diameter = args.diameter
     logger.info('diameter = {}'.format(diameter))
     inpDir = args.inpDir
-    if (Path.is_dir(Path(args.inpDir).joinpath('images'))):
+    if Path.is_dir(Path(args.inpDir).joinpath('images')):
         # switch to images folder if present
         inpDir = str(Path(args.inpDir).joinpath('images').absolute())
     logger.info('inpDir = {}'.format(inpDir))
@@ -196,7 +196,7 @@ if __name__ == "__main__":
         train_img_names = image_names[0:idx]
         test_img_names = image_names[idx:]
         logger.info('Running cellpose on %d train images  %d test images' % (
-        len(train_img_names), len(test_img_names)))
+            len(train_img_names), len(test_img_names)))
         diameter = args.diameter
         logger.info('Using diameter %0.2f for all images' % diameter)
 

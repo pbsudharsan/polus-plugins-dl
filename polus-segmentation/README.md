@@ -13,13 +13,14 @@ value.
 
 Things to keep in mind when choosing values for the arguments:
 
-1. If 0 is passed as argument no rescaling of images is done.
-2. Choosing cyto/nuclei as arguments for pretrainedModel makes the plugin use weights released
-   by authors of repo. Ignore the argument to train from scratch. This argument can also be used to input
-   custom pretrained models.
-3. Training will stop if test loss hasn't reduced over 5 computations.
+1. If 0 is passed as argument for diameter no rescaling of images is done.
+2. Choosing cyto/nuclei as arguments for pretrainedModel makes the plugin use weights released by
+   authors of the repo. Ignore the argument to train from scratch. This argument can also be used to
+   input custom pretrained models.
+3. Training will stop if test loss hasn't reduced over 5 computations i.e. Early stopping is set to 5.
 
-Check options for default argument values if there are any.This plugin outputs weights after training. Code has been tested with CUDA 10.1 , bfio:2.0.4 and runs on GPU by default.
+Check options for default argument values if there are any. This plugin outputs weights after
+training. Code has been tested with CUDA 10.1 , bfio:2.0.4 and runs on GPU by default.
 
 For more information on the neural network
 visit  [Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1). Check out their repo
@@ -63,7 +64,7 @@ This plugin takes 11 input argument and 1 output argument:
 |`--styleOn` | Use style vector(default True ) | Input | boolean |
 |`--concatenation` | Concatenate downsampled layers with upsampled layers(default False ) | Input | boolean |
 | `--inpDir` | Input Unlabelled image collection to be processed by this plugin | Input | collection |
-| `--pretrainedModel` | Select the model based on structure you want to segment cyto/nuclei/custom model | Input | string |
+| `--pretrainedModel` | Select the model based on structure you want to segment cyto/nuclei/custom model path | Input | string |
 | `--cpretrainedModel` | Path to custom pretrained model | Input | string |
 | `--outDir` | Output collection | Output | Tensorflow model |
 

@@ -1,6 +1,8 @@
 # Code sourced from https://github.com/MouseLand/cellpose/tree/master/cellpose
 
-import os, pathlib
+import os
+import pathlib
+
 import numpy as np
 
 import transforms
@@ -19,7 +21,8 @@ class CellposeModel(UnetModel):
      device(torch): Where model is saved (torch.gpu() or torch.cpu())
 
     """
-    def __init__(self, gpu=False,model_type=None ,pretrained_model=False, torch=True,
+
+    def __init__(self, gpu=False, model_type=None, pretrained_model=False, torch=True,
                  diam_mean=30., net_avg=True, device=None,
                  residual_on=True, style_on=True, concatenation=False):
         torch = True
@@ -33,16 +36,16 @@ class CellposeModel(UnetModel):
         self.nclasses = nclasses
 
         # load default cyto model if pretrained_model is None
-        if model_type in ['cyto','nuclei']:
+        if model_type in ['cyto', 'nuclei']:
             torch_str = ['', 'torch'][self.torch]
             pretrained_model = [os.fspath(model_dir.joinpath(
                 '%s%s_%d' % (pretrained_model, torch_str, j)))
                 for j in range(4)]
             pretrained_model = pretrained_model[0] if not net_avg else pretrained_model
-            diam_mean = 30. if pretrained_model=='cyto' else 17.
+            diam_mean = 30. if pretrained_model == 'cyto' else 17.
             residual_on, style_on, concatenation = True, True, False
 
-        else :
+        else:
             if pretrained_model:
                 params = parse_model_string(pretrained_model)
                 if params is not None:
@@ -60,7 +63,6 @@ class CellposeModel(UnetModel):
         self.net_type = 'cellpose_residual_{}_style_{}_concatenation_{}'.format(ostr[residual_on],
                                                                                 ostr[style_on],
                                                                                 ostr[concatenation])
-
 
     def loss_fn(self, lbl, y):
         """ Loss function between true labels lbl and prediction y
@@ -84,7 +86,8 @@ class CellposeModel(UnetModel):
               test_data=None, test_labels=None, test_files=None,
               channels=None, normalize=True, pretrained_model=None,
               save_path=None, save_every=20,
-              learning_rate=0.2, n_epochs=500, momentum=0.9, weight_decay=0.00001, batch_size=8, rescale=True):
+              learning_rate=0.2, n_epochs=500, momentum=0.9, weight_decay=0.00001, batch_size=8,
+              rescale=True):
         """ Train network with images train_data
         Args:
             train_data(list[array]): Images for training
@@ -107,16 +110,18 @@ class CellposeModel(UnetModel):
             model_path(str): Model path
 
         """
-        train_data, train_labels, test_data, test_labels, run_test = transforms.reshape_train_test(train_data,
-                                                                                                   train_labels ,
-                                                                                                   test_data,
-                                                                                                   test_labels,
-                                                                                                   channels, normalize)
+        train_data, train_labels, test_data, test_labels, run_test = transforms.reshape_train_test(
+            train_data,
+            train_labels,
+            test_data,
+            test_labels,
+            channels, normalize)
 
         model_path = self._train_net(train_data, train_labels,
                                      test_data, test_labels,
                                      pretrained_model, save_path, save_every,
-                                     learning_rate, n_epochs, momentum, weight_decay, batch_size, rescale)
+                                     learning_rate, n_epochs, momentum, weight_decay, batch_size,
+                                     rescale)
 
         self.pretrained_model = model_path
         return model_path
