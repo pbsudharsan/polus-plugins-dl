@@ -1,7 +1,7 @@
   {
-      "name": "Cellpose-inference ",
+      "name": "Cellpose-inference",
       "version": "0.3.9",
-      "title": "Cellpose-inference  ",
+      "title": "Cellpose-inference",
       "description": "Semantic segmentation of cell/nuclei",
       "author": "Sudharsan Prativadi (sudharsan.prativadi@labshare.org)",
       "institution": "National Center for Advancing Translational Sciences, National Institutes of Health",
@@ -13,19 +13,19 @@
         {
           "name": "diameter",
           "type": "integer",
-          "description": "Default Diameter  is 30 enter 0   to  use cellpose to calculate the diameter or value of  choice",
+          "description": "Select the diameter value for all images. Enter 0 for the plugin to predict diameter.",
           "required": false
         },
         {
           "name": "inpDir",
           "type": "collection",
-          "description": "Input image collection to be processed by this plugin",
+          "description": "Input image collection to be processed by this plugin.",
           "required": true
         },
         {
           "name": "pretrainedModel",
           "type": "enum",
-          "description": "Choose cell/nuclei to segment",
+          "description": "Choose cell/nuclei to segment.",
           "options": {
             "values": [
                   "cyto",
@@ -35,9 +35,9 @@
             },
           "required": true
         },
-        {"name":"cpretrainedModel" ,
+        {"name": "cpretrainedModel" ,
                 "type": "tensorflowModel",
-                "description":"Select the custom pretrained model for segmentation",
+                "description": "Select the custom pretrained model for segmentation.",
                 "required": true
               }
       ],
@@ -45,31 +45,31 @@
         {
           "name": "outDir",
           "type": "genericData",
-          "description": "Output collection"
+          "description": "Output collection."
         }
       ],
       "ui": [
         {
           "key": "inputs.inpDir",
           "title": "Input collection",
-          "description": "Input image collection to be processed by this plugin"
+          "description": "Input image collection to be processed by this plugin.."
         },
 
         {
           "key": "inputs.diameter",
           "title": "Diameter ",
-          "description": "Default value is 30.Enter 0 for the plugin to predict diameter"
+          "description": "Select the diameter value for all images. Enter 0 for the plugin to predict diameter."
         },
 
         {
           "key": "inputs.pretrainedModel",
           "title": "Model to use(Cyto/nuclei)",
-          "description": "Object that needs to be segmented"
+          "description": "Object that needs to be segmented."
         },
         {
           "key": "inputs.cpretrainedModel",
           "title": "Pretrained Model of choice",
-          "description": "Path to pretrained Model to run the images",
+          "description": "Path to pretrained Model to run the images.",
           "condition": "model.inputs.pretrainedModel=='custom'"
         }
       ]
