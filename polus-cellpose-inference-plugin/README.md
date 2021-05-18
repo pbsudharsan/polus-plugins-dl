@@ -12,7 +12,7 @@ cells.
 Apart from allowing user to specify the type of segmentation this plugin allows the user to choose
 the diameter of cells as well as has the option to input custom pretrained model.
 
-Things to keep in mind when choosing the diameter and inputting custom model
+Things to keep in mind when choosing the diameter and inputting custom model:
 
 1. Default diameter for cyto and nuclei models is 17 and 30 respectively. If 0 is passed as diameter
    plugin will estimate diameter for each image.
