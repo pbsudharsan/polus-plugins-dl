@@ -14,6 +14,7 @@ def _taper_mask(ly=224, lx=224, sig=7.5):
         sig(float): sigma
     Returns:
         mask(array): Mask after tapered
+
     """
     bsize = max(224, max(ly, lx))
     xm = np.arange(bsize)
@@ -149,11 +150,11 @@ def make_tiles(imgi, bsize=224, augment=False, tile_overlap=0.1):
 
 
 def normalize99(img):
-    """ Normalize image so 0.0 is 1st percentile and 1.0 is 99th percentile
+    """ Normalize image so 0.0 is 1st percentile and 1.0 is 99th percentile.
     Args:
-        img(array) : Numpy array that's (x  Ly x Lx x nchan)
+        img(array) : Numpy array that's (x  Ly x Lx x nchan).
     Returns:
-        x(array) : Normalised numpy image
+        x(array) : Normalised numpy image.
     """
     X = img.copy()
     X = (X - np.percentile(X, 1)) / (np.percentile(X, 99) - np.percentile(X, 1))
@@ -161,13 +162,13 @@ def normalize99(img):
 
 
 def reshape(data, channels=[0, 0], chan_first=False):
-    """ Reshape data using channels
+    """ Reshape data using channels.
     Args:
-        data(array) : Numpy array that's (Z x ) Ly x Lx x nchan.if data.ndim==8 and data.shape[0]<8, assumed to be nchan x Ly x Lx
-        channels[list] : List of int of length 2 (optional, default [0,0])
-        invert(bool) : Invert intensities
+        data(array) : Numpy array that's (Z x ) Ly x Lx x nchan. If data.ndim==8 and data.shape[0]<8, assumed to be nchan x Ly x Lx.
+        channels[list] : List of int of length 2 (optional, default [0,0]).
+        invert(bool) : Invert intensities.
     Returns:
-        data(array) : Numpy array that's (Z x ) Ly x Lx x nchan (if chan_first==False)
+        data(array) : Numpy array that's (Z x ) Ly x Lx x nchan (if chan_first==False).
 
     """
     data = data.astype(np.float32)
@@ -192,10 +193,10 @@ def reshape(data, channels=[0, 0], chan_first=False):
             for i in range(data.shape[-1]):
                 if np.ptp(data[..., i]) == 0.0:
                     if i == 0:
-                        warnings.warn("chan to seg' has value range of ZERO")
+                        warnings.warn("Chan to seg' has value range of ZERO")
                     else:
                         warnings.warn(
-                            "'chan2 (opt)' has value range of ZERO, can instead set chan2 to 0")
+                            "'Chan2 (opt)' has value range of ZERO, can instead set chan2 to 0")
             if data.shape[-1] == 1:
                 data = np.concatenate((data, np.zeros_like(data)), axis=-1)
     if chan_first:
@@ -208,12 +209,12 @@ def reshape(data, channels=[0, 0], chan_first=False):
 
 def normalize_img(img, axis=-1, invert=False):
     """ Normalize each channel of the image so that so that 0.0=1st percentile
-    and 1.0=99th percentile of image intensities and optional inversion
+    and 1.0=99th percentile of image intensities and optional inversion.
     Args:
-        img(array): ND-array
-        axis(int): Channel axis to loop over for normalization
+        img(array): Input image.
+        axis(int): Channel axis to loop over for normalization.
     Returns:
-        img(array[float32]): ND-array. Normalized image of same size
+        img(array[float32]): Normalized image of same size.
 
     """
     if img.ndim < 3:
@@ -233,16 +234,16 @@ def normalize_img(img, axis=-1, invert=False):
 def resize_image(img0, Ly=None, Lx=None, rsz=None, interpolation=cv2.INTER_LINEAR):
     """ Resize image for computing flows / unresize for computing dynamics
     Args:
-        img0(array): ND-array..image of size [y x x x nchan] or [Lz x y x x x nchan]
-        Ly(int): Resize shape
-        Lx(int): Resize shape
-        rsz(float): Resize coefficient(s) for image; if Ly is None then rsz is used
-        interpolation(cv2 interp method): Default cv2.INTER_LINEAR
+        img0(array): Image of size [y x x x nchan].
+        Ly(int): Resize shape.
+        Lx(int): Resize shape.
+        rsz(float): Resize coefficient(s) for image; if Ly is None then rsz is used.
+        interpolation(cv2 interp method): Type of interpolation. Default cv2.INTER_LINEAR.
     Returns:
-        imgs(array): Image of size [Ly x Lx x nchan] or [Lz x Ly x Lx x nchan]
+        imgs(array): Resized image of size [Ly x Lx x nchan].
     """
     if Ly is None and rsz is None:
-        raise ValueError('must give size to resize to or factor to use for resizing')
+        raise ValueError('Must give size to resize to or factor to use for resizing')
 
     if Ly is None:
         # determine Ly and Lx using rsz
@@ -263,12 +264,12 @@ def resize_image(img0, Ly=None, Lx=None, rsz=None, interpolation=cv2.INTER_LINEA
 def pad_image_ND(img0, div=16, extra=1):
     """ Pad image for test-time so that its dimensions are a multiple of 16 (2D or 3D)
     Args:
-        img0(array): Image of size [nchan (x Lz) x Ly x Lx]
-        div(int): Default 16
+        img0(array): Image of size [nchan (x Lz) x Ly x Lx].
+        div(int): Default 16.
     Returns:
-        I(array): Padded image
-        ysub(array[int]): yrange of pixels in I corresponding to img0
-        xsub(array[int]): xrange of pixels in I corresponding to img0
+        I(array): Padded image.
+        ysub(array[int]): yrange of pixels in I corresponding to img0.
+        xsub(array[int]): xrange of pixels in I corresponding to img0.
 
     """
     Lpad = int(div * np.ceil(img0.shape[-2] / div) - img0.shape[-2])
@@ -293,22 +294,22 @@ def pad_image_ND(img0, div=16, extra=1):
 
 def random_rotate_and_resize(X, Y=None, scale_range=1., xy=(224, 224),
                              do_flip=True, rescale=None, unet=False):
-    """ Augmentation by random rotation and resizing X and Y are lists or arrays of length nimg, with dims channels Ly x Lx
+    """ Augmentation by random rotation and resizing X and Y are lists or arrays of length nimg, with dims channels Ly x Lx.
     Args:
-        X(list[float]): LIST of ND-arrays.list of image arrays of size [nchan x Ly x Lx] or [Ly x Lx]
-        Y(list[float]): LIST of ND-arrays, list of image labels of size [nlabels x Ly x Lx] or [Ly x Lx]. The 1st channel
+        X(list[float]): List of image arrays of size [nchan x Ly x Lx] or [Ly x Lx].
+        Y(list[float]): List of image labels of size [nlabels x Ly x Lx] or [Ly x Lx]. The 1st channel
         of Y is always nearest-neighbor interpolated (assumed to be masks or 0-1 representation).
-        If Y.shape[0]==3 .The labels are assumed to be [cell probability, Y flow, X flow].
-        scale_range(float): default 1.0.Range of resizing of images for augmentation. Images are resized by
-            (1-scale_range/2) + scale_range * np.random.rand()
-        xy(tuple[int]): Default (224,224)).size of transformed images to return
-        do_flip(bool): Default True.whether or not to flip images horizontally
-        rescale(array[float]): Default None.how much to resize images by before performing augmentations
-        unet(bool):  default False
+        If Y.shape[0]==3 . The labels are assumed to be [cell probability, Y flow, X flow].
+        scale_range(float): Default 1.0. Range of resizing of images for augmentation. Images are resized by
+            (1-scale_range/2) + scale_range * np.random.rand().
+        xy(tuple[int]): Default (224,224)). Size of transformed images to return.
+        do_flip(bool): Default True. Whether or not to flip images horizontally.
+        rescale(array[float]): Default None. How much to resize images by before performing augmentations.
+        unet(bool): Set true to use Unet model.
     Returns:
-        imgi(array[float]): Transformed images in array [nimg x nchan x xy[0] x xy[1]]
-        lbl(array[float]): Transformed labels in array [nimg x nchan x xy[0] x xy[1]]
-        scale(array[float]): Amount each image was resized by
+        imgi(array[float]): Transformed images in array [nimg x nchan x xy[0] x xy[1]].
+        lbl(array[float]): Transformed labels in array [nimg x nchan x xy[0] x xy[1]].
+        scale(array[float]): Amount each image was resized by.
 
     """
     scale_range = max(0, min(2, float(scale_range)))
@@ -385,12 +386,12 @@ def random_rotate_and_resize(X, Y=None, scale_range=1., xy=(224, 224),
 
 
 def _X2zoom(img, X2=1):
-    """ Zoom in image
+    """ Zoom in image.
     Args:
-        img(array): Numpy array that's Ly x Lx
+        img(array): Numpy array that's Ly x Lx.
 
     Returns:
-        img(array): Numpy array that's Ly x Lx
+        img(array): Numpy array that's Ly x Lx.
 
     """
     ny, nx = img.shape[:2]
@@ -399,13 +400,13 @@ def _X2zoom(img, X2=1):
 
 
 def _image_resizer(img, resize=512, to_uint8=False):
-    """ Resize image
+    """ Resize image.
     Args:
-        img(array): Numpy array that's Ly x Lx
-        resize(int): Max size of image returned
-        to_uint8(bool): Convert image to uint8
+        img(array): Numpy array that's Ly x Lx.
+        resize(int): Max size of image returned.
+        to_uint8(bool): Convert image to uint8.
     Returns:
-        img(array): Numpy array that's Ly x Lx, Ly,Lx<resize
+        img(array): Numpy array that's Ly x Lx, Ly,Lx<resize.
     """
     ny, nx = img.shape[:2]
     if to_uint8:

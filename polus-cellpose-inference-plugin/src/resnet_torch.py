@@ -11,13 +11,13 @@ import torch.nn.functional as F
 sz = 3
 
 def convbatchrelu(in_channels, out_channels, sz):
-    """ Performs 2d convolution,normalisation and relu activation serially
+    """ Performs 2d convolution,normalisation and relu activation serially.
     Args:
-        in_channels(int): Number of channels in input image
-        out_channels(int): Number of channels in output image
-        sz(int): Kernel size
+        in_channels(int): Number of channels in input image.
+        out_channels(int): Number of channels in output image.
+        sz(int): Kernel size.
     Returns:
-        _ : Module that performs 2d convolution,normalisation and relu activation
+        _ : Module that performs 2d convolution,normalisation and relu activation.
 
     """
     return nn.Sequential(
@@ -27,13 +27,13 @@ def convbatchrelu(in_channels, out_channels, sz):
     )  
 
 def batchconv(in_channels, out_channels, sz):
-    """ Performs normalisation ,relu activation and 2d convolution serially
+    """ Performs normalisation ,relu activation and 2d convolution serially.
     Args:
-        in_channels(int): Number of channels in input image
-        out_channels(int): Number of channels in output image
-        sz(int): Kernel size
+        in_channels(int): Number of channels in input image.
+        out_channels(int): Number of channels in output image.
+        sz(int): Kernel size.
     Returns:
-        _ :Module that performs normalisation ,relu activation and 2d convolution
+        _ :Module that performs normalisation ,relu activation and 2d convolution.
 
     """
     return nn.Sequential(
@@ -43,13 +43,13 @@ def batchconv(in_channels, out_channels, sz):
     )  
 
 def batchconv0(in_channels, out_channels, sz):
-    """ Performs normalisation and 2d convolution serially
+    """ Performs normalisation and 2d convolution serially.
     Args:
-        in_channels(int): Number of channels in input image
-        out_channels(int): Number of channels in output image
-        sz(int): Kernel size
+        in_channels(int): Number of channels in input image.
+        out_channels(int): Number of channels in output image.
+        sz(int): Kernel size.
     Returns:
-        _ : Module that performs normalisation and 2d convolution
+        _ : Module that performs normalisation and 2d convolution.
 
     """
     return nn.Sequential(
@@ -58,11 +58,11 @@ def batchconv0(in_channels, out_channels, sz):
     )  
 
 class resdown(nn.Module):
-    """  Class for residual blocks
+    """  Class for residual blocks.
     Args:
-        in_channels(int): Number of channels in input image
-        out_channels(int): Number of channels in output image
-        sz(int): Kernel size
+        in_channels(int): Number of channels in input image.
+        out_channels(int): Number of channels in output image.
+        sz(int): Kernel size.
 
     """
     def __init__(self, in_channels, out_channels, sz):
@@ -76,12 +76,12 @@ class resdown(nn.Module):
                 self.conv.add_module('conv_%d'%t, batchconv(out_channels, out_channels, sz))
                 
     def forward(self, x):
-        """ Forward pass for residual blocks
+        """ Forward pass for residual blocks.
         Args:
-            x(array[float32]): Input array
+            x(array[float32]): Input array.
         Returns:
             x(array[float32]): Array after performing series of normalisation and convolution
-                               operations
+                               operations.
 
         """
         x = self.proj(x) + self.conv[1](self.conv[0](x))
@@ -89,11 +89,11 @@ class resdown(nn.Module):
         return x
 
 class convdown(nn.Module):
-    """ Class for down convolution
+    """ Class for down convolution.
     Args:
-        in_channels(int): Number of channels in input image
-        out_channels(int): Number of channels in output image
-        sz(int): Kernel size
+        in_channels(int): Number of channels in input image.
+        out_channels(int): Number of channels in output image.
+        sz(int): Kernel size.
 
     """
     def __init__(self, in_channels, out_channels, sz):
@@ -106,11 +106,11 @@ class convdown(nn.Module):
                 self.conv.add_module('conv_%d'%t, batchconv(out_channels, out_channels, sz))
                 
     def forward(self, x):
-        """ Forward pass for down convolution
+        """ Forward pass for down convolution.
         Args:
-            x(array): Array module before down convolution
+            x(array): Array module before down convolution.
         Returns:
-            x(array): Array module after down convolution
+            x(array): Array module after down convolution.
 
         """
         x = self.conv[0](x)
@@ -120,9 +120,9 @@ class convdown(nn.Module):
 class downsample(nn.Module):
     """ Class for downsampling
     Args:
-        nbase(list): Number of in channels
-        sz(int): kernel size
-        residual_on(bool): Unet parameter
+        nbase(list): Number of in channels.
+        sz(int): Kernel size.
+        residual_on(bool): Unet parameter.
 
     """
     def __init__(self, nbase, sz, residual_on=True):
@@ -138,9 +138,9 @@ class downsample(nn.Module):
     def forward(self, x):
         """ Forward pass of downsampling  performing maxpooling.
         Args:
-            x(array): Array module before down sample
+            x(array): Array module before down sample.
         Returns:
-            x(array): Array module after down sample
+            x(array): Array module after down sample.
 
         """
         xd = []
@@ -153,13 +153,13 @@ class downsample(nn.Module):
         return xd
     
 class batchconvstyle(nn.Module):
-    """ Class handles batch convolution
+    """ Class handles batch convolution.
     Args:
-        in_channels(int): Number of channels in input image
-        out_channels(int): Number of channels in output image
-        sz(int): Kernel size
-        style_channels(int): Number of classes
-        concatenation(bool): Unet parameter
+        in_channels(int): Number of channels in input image.
+        out_channels(int): Number of channels in output image.
+        sz(int): Kernel size.
+        style_channels(int): Number of classes.
+        concatenation(bool): Unet parameter.
 
     """
     def __init__(self, in_channels, out_channels, style_channels, sz, concatenation=False):
@@ -172,11 +172,11 @@ class batchconvstyle(nn.Module):
             self.full = nn.Linear(style_channels, out_channels)
         
     def forward(self, style, x, mkldnn=False):
-        """ Forward pass for batchconvstyle
+        """ Forward pass for batchconvstyle.
         Args:
-            style(array): Vector after downsampling
-            x(array): Array to perform batchconvstyle
-            mkldnn(bool): Check for mkldnn
+            style(array): Vector after downsampling.
+            x(array): Array to perform batchconvstyle.
+            mkldnn(bool): Check for mkldnn.
 
         """
 
@@ -190,13 +190,13 @@ class batchconvstyle(nn.Module):
         return y
     
 class resup(nn.Module):
-    """ Class to build residual blocks
+    """ Class to build residual blocks.
     Args:
-        in_channels(int): Number of channels in input image
-        out_channels(int): Number of channels in output image
-        sz(int): Kernel size
-        style_channels(int): Number of classes
-        concatenation(bool): Unet parameter
+        in_channels(int): Number of channels in input image.
+        out_channels(int): Number of channels in output image.
+        sz(int): Kernel size.
+        style_channels(int): Number of classes.
+        concatenation(bool): Unet parameter.
 
     """
 
@@ -210,14 +210,14 @@ class resup(nn.Module):
         self.proj  = batchconv0(in_channels, out_channels, 1)
 
     def forward(self, x, y, style, mkldnn=False):
-        """ Function handling forward pass
+        """ Function handling forward pass.
         Args:
-            x(array): Input array to residual block
-            y(array): Kernal size
-            style(array): Vector after downsampling
-            mkldnn(bool): True if mkldnn is available
+            x(array): Input array to residual block.
+            y(array): Kernal size.
+            style(array): Vector after downsampling.
+            mkldnn(bool): True if mkldnn is available.
         Returns:
-            x(array): Output after passing through residual blocks
+            x(array): Output after passing through residual blocks.
 
         """
         x = self.proj(x) + self.conv[1](style, self.conv[0](x) + y, mkldnn=mkldnn)
@@ -225,13 +225,13 @@ class resup(nn.Module):
         return x
     
 class convup(nn.Module):
-    """ Up Convolution class
+    """ Up Convolution class.
     Args:
-        in_channels(int): Number of channels in input image
-        out_channels(int): Number of channels in output image
-        sz(int): Kernel size
-        style_channels(int): Number of classes
-        concatenation(bool): Unet parameter
+        in_channels(int): Number of channels in input image.
+        out_channels(int): Number of channels in output image.
+        sz(int): Kernel size.
+        style_channels(int): Number of classes.
+        concatenation(bool): Unet parameter.
 
     """
     def __init__(self, in_channels, out_channels, style_channels, sz, concatenation=False):
@@ -241,20 +241,20 @@ class convup(nn.Module):
         self.conv.add_module('conv_1', batchconvstyle(out_channels, out_channels, style_channels, sz, concatenation=concatenation))
         
     def forward(self, x, y, style):
-        """ Function handling forward pass
+        """ Function handling forward pass.
         Args:
-             x(array): Array to perform upconvolution on
-             y(array): Kernal size
-             style(array): Vector after downsampling
+             x(array): Array to perform upconvolution on.
+             y(array): Kernal size.
+             style(array): Vector after downsampling.
         Returns:
-            x(array):  Array after upconvolution
+            x(array): Array after upconvolution.
 
         """
         x = self.conv[1](style, self.conv[0](x) + y)
         return x
     
 class make_style(nn.Module):
-    """ Class handling style vector between downsampling and upsampling pass
+    """ Class handling style vector between downsampling and upsampling pass.
 
     """
     def __init__(self):
@@ -262,14 +262,13 @@ class make_style(nn.Module):
         self.flatten = nn.Flatten()
 
     def forward(self, x0):
-        """ Forward pass
+        """ Forward pass.
         Args:
-            x0(array): Final output array after downsampling
+            x0(array): Final output array after downsampling.
         Returns:
-            style(array): Flattened output array after downsampling
+            style(array): Flattened output array after downsampling.
 
         """
-        #style = self.pool_all(x0)
         style = F.avg_pool2d(x0, kernel_size=(x0.shape[-2],x0.shape[-1]))
         style = self.flatten(style)
         style = style / torch.sum(style**2, axis=1, keepdim=True)**.5
@@ -280,7 +279,7 @@ class upsample(nn.Module):
     """ Upsampling part of neural network
     Args:
         nbase(list): Number of in channels
-        sz(int): kernel size
+        sz(int): Kernel size
         residual_on(bool): Unet parameter
         concatenation(bool): Unet parameter
 
@@ -298,11 +297,11 @@ class upsample(nn.Module):
                     convup(nbase[n], nbase[n-1], nbase[-1], sz, concatenation))
 
     def forward(self, style, xd, mkldnn=False):
-        """ Forward pass for upsampling
+        """ Forward pass for upsampling.
         Args:
-            style(array): Downsampled final vector
-            xd(array): Concatenation array
-            mkldnn(bool): True if mkldnn is available
+            style(array): Downsampled final vector.
+            xd(array): Concatenation array.
+            mkldnn(bool): True if mkldnn is available.
 
         """
         x = self.up[-1](xd[-1], xd[-1], style, mkldnn=mkldnn)
@@ -315,15 +314,15 @@ class upsample(nn.Module):
         return x
     
 class CPnet(nn.Module):
-    """ Main class for NN
+    """ Main class for NN.
     Args:
-        nout(int): Number of classes
-        nbase(list): Number of in channels
-        sz(int): Kernel size
-        residual_on(bool): Unet parameter
-        concatenation(bool): Unet parameter
-        mkldnn(bool): True if mkldnn is available
-        style_on(bool): True if styles is enabled
+        nout(int): Number of classes.
+        nbase(list): Number of in channels.
+        sz(int): Kernel size.
+        residual_on(bool): Unet parameter.
+        concatenation(bool): Unet parameter.
+        mkldnn(bool): True if mkldnn is available.
+        style_on(bool): True if styles is enabled.
 
     """
     def __init__(self, nbase, nout, sz, residual_on=True, 
@@ -345,12 +344,12 @@ class CPnet(nn.Module):
         self.style_on = style_on
         
     def forward(self, data):
-        """ Forward pass for network
+        """ Forward pass for network.
         Args:
-            data(array): Batch of unlabelled images for prediction
+            data(array): Batch of unlabelled images for prediction.
         Returns:
-            T0(array): Final Array after downsampled
-            style0(array): Flattened downsampled array
+            T0(array): Final Array after downsampled.
+            style0(array): Flattened downsampled array.
 
         """
         if self.mkldnn:
@@ -372,16 +371,16 @@ class CPnet(nn.Module):
     def save_model(self, filename):
         """ Saves pretrained model
         Args:
-            filename(str): Filename
+            filename(str): Filename.
 
         """
         torch.save(self.state_dict(), filename)
 
     def load_model(self, filename, cpu=False):
-        """ Loads pretrained model
+        """ Loads pretrained model.
         Args:
-            filename(str): Filename
-            cpu(bool) : Loading using cpu/gpu
+            filename(str): Filename.
+            cpu(bool) : Loading using cpu/gpu.
 
         """
         if not cpu:

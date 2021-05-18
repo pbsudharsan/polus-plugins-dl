@@ -2,7 +2,7 @@
 
 This plugin is an implementation of segmenting cyto/nuclei 2D/ 3D images using pretrained models
 created by authors of
-Cellpose.[Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1)
+Cellpose. [Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1)
 is a generalist algorithm for cell and nucleus segmentation.
 
 Cellpose uses two major innovations: a reversible transformation from training set masks to vector
@@ -14,7 +14,7 @@ the diameter of cells as well as has the option to input custom pretrained model
 
 Things to keep in mind when choosing the diameter and inputting custom model
 
-1. Default diameter for cyto and nuclei models is 17 and 30 respectively.If 0 is passed as diameter
+1. Default diameter for cyto and nuclei models is 17 and 30 respectively. If 0 is passed as diameter
    plugin will estimate diameter for each image.
 2. Option to estimate diameter for each image will not be available if a custom model is an input.
    However, user-specified model diameter will be used.

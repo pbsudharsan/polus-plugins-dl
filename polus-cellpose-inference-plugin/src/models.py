@@ -1,4 +1,4 @@
-#Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
+# Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
 
 import logging
 import os
@@ -25,7 +25,7 @@ model_dir = pathlib.Path.home().joinpath('.cellpose', 'models')
 def dx_to_circ(dP):
     """
     Args:
-        dP (array) : 'optic' flow representation  2 x Y x X
+        dP (array) : Flow representation.
     Returns:
         flow(array): Vector field.
 
@@ -46,9 +46,9 @@ def dx_to_circ(dP):
 class Cellpose():
     """ Main class which Cellpose pretrained model segmentation
     Args:
-        model_type(str): Default 'cyto','cyto'=cytoplasm model; 'nuclei'=nucleus model
-        net_avg(bool): Default True. Loads the 4 built-in networks and averages them if True, loads one network if False
-        torch(bool): Default False. Run model using torch if available
+        model_type(str): Type of model.
+        net_avg(bool): Default True. Loads the 4 built-in networks and averages them if True, loads one network if False.
+        torch(bool): Default False. Run model using torch if available.
 
     """
 
@@ -90,29 +90,28 @@ class Cellpose():
         """ Run cellpose and get masks
         Args:
             x(array): 2d Image
-            batch_size(int): Default 8.Number of 224x224 patches to run simultaneously on the GPU
-                            Can make smaller or bigger depending on GPU memory usage.
+            batch_size(int): Default 8. Number of 224x224 patches to run simultaneously on the GPU.
             channels(list): List of channels, either of length 2 or of length number of images by 2.
-            invert(bool): Invert image pixel intensity before running network (if True, image is also normalized)
-            normalize(bool): Normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel
-            diameter(float): Default 30. If set to None, then diameter is automatically estimated if size model is loaded
-            anisotropy(float): For 3D segmentation, optional rescaling factor (e.g. set to 2.0 if Z is sampled half as dense as X or Y)
-            net_avg(bool): Default True. Runs the 4 built-in networks and averages them if True, runs one network if False
-            augment(bool): Default False. Tiles image with overlapping tiles and flips overlapped regions to augment
-            tile(bool): Default True. Tiles image to ensure GPU/CPU memory usage limited
-            tile_overlap(float): Default 0.1. Fraction of overlap of tiles when computing flows
-            resample(bool): Default False. Run dynamics at original image size (will be slower but create more accurate boundaries)
-            interp(bool): Default True. Interpolate during 2D dynamics
-            flow_threshold(float): Default 0.4. Flow error threshold (all cells with errors below threshold are kept)
-            cellprob_threshold(float): Default 0.0. Cell probability threshold (all pixels with prob above threshold kept for masks)
-            min_size(int): Default 15. Minimum number of pixels per mask, can turn off with -1
-            stitch_threshold(float): Default 0.0. If stitch_threshold>0.0  and equal image sizes, masks are stitched in 3D to return volume segmentation
-            rescale(float): Default None if diameter is set to None, and rescale is not None, then rescale is used instead of diameter for resizing image
+            invert(bool): Invert image pixel intensity before running network (if True, image is also normalized).
+            normalize(bool): Normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel.
+            diameter(float): Default 30. If set to None, then diameter is automatically estimated if size model is loaded.
+            anisotropy(float): Rescaling factor (e.g. set to 2.0 if Z is sampled half as dense as X or Y).
+            net_avg(bool): Default True. Runs the 4 built-in networks and averages them if True, runs one network if False.
+            augment(bool): Default False. Tiles image with overlapping tiles and flips overlapped regions to augment.
+            tile(bool): Default True. Tiles image to ensure GPU/CPU memory usage limited.
+            tile_overlap(float): Default 0.1. Fraction of overlap of tiles when computing flows.
+            resample(bool): Default False. Run dynamics at original image size (will be slower but create more accurate boundaries).
+            interp(bool): Default True. Interpolate during 2D dynamics.
+            flow_threshold(float): Default 0.4. Flow error threshold (all cells with errors below threshold are kept).
+            cellprob_threshold(float): Default 0.0. Cell probability threshold (all pixels with prob above threshold kept for masks).
+            min_size(int): Default 15. Minimum number of pixels per mask.
+            stitch_threshold(float): Default 0.0. If stitch_threshold>0.0  and equal image sizes.
+            rescale(float): Default None if diameter is set to None, and rescale is not None, then rescale is used instead of diameter for resizing image.
         Returns:
-            masks(arrays): list of 2D. Labelled image, where 0=no masks; 1,2,...=mask labels
-            flows(array): list of lists 2D arrays, flows[k][0] = XY flow in HSV 0-255, flows[k][1] = Flows at each pixel and flows[k][2] = Cell probability centered at 0.0
-            styles: List of 1D arrays of length 64.style vector summarizing each image, also used to estimate size of objects in image
-            diams[list]: List of diameters, or float
+            masks(arrays): list of 2D Labelled image where 0=no masks; 1,2,...=mask labels.
+            flows(array): list of lists 2D arrays, flows[k][0] = XY flow in HSV 0-255, flows[k][1] = Flows at each pixel and flows[k][2] = Cell probability centered at 0.0.
+            styles(list): Style vector summarizing each image, also used to estimate size of objects in image.
+            diams[list]: List of diameters.
 
         """
 
@@ -178,13 +177,13 @@ class Cellpose():
 class CellposeModel(UnetModel):
     """ Class for the segmenting masks
     Args:
-        pretrained_model(str/list): Path to pretrained cellpose model(s), if False, no model loaded;if None, built-in 'cyto' model loaded
-        net_avg(bool): Default True. Loads the 4 built-in networks and averages them if True, loads one network if False
-        diam_mean(float): Default 27. Mean 'diameter', 27. is built in value for 'cyto' model
-        device(torch): Set GPU/CPU
-        residual_on(bool): Network parameter
-        style_on(bool): Network parameter
-        concatenation(bool): Network parameter
+        pretrained_model(str/list): Path to pretrained cellpose model(s), if False, no model loaded;if None, built-in 'cyto' model loaded.
+        net_avg(bool): Default True. Loads the 4 built-in networks and averages them if True, loads one network if False.
+        diam_mean(float): Default 30. If set to None, then diameter is automatically estimated if size model is loaded.
+        device(torch): Set GPU/CPU.
+        residual_on(bool): Network parameter.
+        style_on(bool): Network parameter.
+        concatenation(bool): Network parameter.
 
     """
 
@@ -240,29 +239,29 @@ class CellposeModel(UnetModel):
              resample=False, interp=True, flow_threshold=0.4, cellprob_threshold=0.0,
              compute_masks=False,
              min_size=15, stitch_threshold=0.0, not_compute=True):
-        """ Segment list of images imgs, or 4D array - Z x nchan x Y x X
+        """ Segment list of images
         Args:
-            imgs(array): Can be list of 2D/3D/4D images, or array of 2D/3D images
-            batch_size(int): Default 8. Number of 224x224 patches to run simultaneously on the GPU
+            imgs(array): Can be list of 2D/3D/4D images, or array of 2D/3D images.
+            batch_size(int): Default 8. Number of 224x224 patches to run simultaneously on the GPU.
             channels(list): Default None. List of channels, either of length 2 or of length number of images by 2.
-            normalize(bool): Default True. Normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel
-            invert(bool):  Default False. Invert image pixel intensity before running network
-            rescale(float): Resize factor for each image, if None, set to 1.0
-            diameter(float): Diameter for each image (only used if rescale is None), if diameter is None, set to diam_mean
-            net_avg(bool): Default True. Runs the 4 built-in networks and averages them if True, runs one network if False
-            augment(bool): Default False. Tiles image with overlapping tiles and flips overlapped regions to augment
-            tile(bool): Default True. Tiles image to ensure GPU/CPU memory usage limited (recommended)
-            tile_overlap(float): Default 0.1. Fraction of overlap of tiles when computing flows
-            resample(bool): Default False. Run dynamics at original image size (will be slower but create more accurate boundaries)
-            interp(bool): Default True. Interpolate during 2D dynamics
-            flow_threshold(float): Default=.4. Flow error threshold (all cells with errors below threshold are kept)
-            cellprob_threshold(float): Cell probability threshold (all pixels with prob above threshold kept for masks)
+            normalize(bool): Default True. Normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel.
+            invert(bool):  Default False. Invert image pixel intensity before running network.
+            rescale(float): Resize factor for each image, if None, set to 1.0.
+            diameter(float): Diameter for each image (only used if rescale is None), if diameter is None, set to diam_mean.
+            net_avg(bool): Default True. Runs the 4 built-in networks and averages them if True, runs one network if False.
+            augment(bool): Default False. Tiles image with overlapping tiles and flips overlapped regions to augment.
+            tile(bool): Default True. Tiles image to ensure GPU/CPU memory usage limited (recommended).
+            tile_overlap(float): Default 0.1. Fraction of overlap of tiles when computing flows.
+            resample(bool): Default False. Run dynamics at original image size (will be slower but create more accurate boundaries).
+            interp(bool): Default True. Interpolate during 2D dynamics.
+            flow_threshold(float): Default=.4. Flow error threshold (all cells with errors below threshold are kept).
+            cellprob_threshold(float): Cell probability threshold (all pixels with prob above threshold kept for masks).
             compute_masks(bool): Default True. Whether or not to compute dynamics and return masks.
-            min_size(int): Default 15. Minimum number of pixels per mask, can turn off with -1
+            min_size(int): Default 15. Minimum number of pixels per mask, can turn off with -1.
         Returns:
-            masks(list): List of 2D arrays.labelled image, where 0=no masks; 1,2,...=mask labels
-            flows(list): List of lists 2D arrays. flows[k][0] = XY flow in HSV 0-255, flows[k][1] = flows at each pixel, flows[k][2] = the cell probability centered at 0.0
-            styles(array): List of 1D arrays of length 64, or single 1D array.style vector summarizing each image, also used to estimate size of objects in image
+            masks(list): List of 2D arrays.labelled image, where 0=no masks; 1,2,...=mask labels.
+            flows(list): List of lists 2D arrays. flows[k][0] = XY flow in HSV 0-255, flows[k][1] = flows at each pixel, flows[k][2] = the cell probability centered at 0.0.
+            styles(list): Style vector summarizing each image, also used to estimate size of objects in image.
 
         """
 
@@ -341,9 +340,9 @@ class SizeModel():
     """ Linear regression model for determining the size of objects in image used to rescale before input to cp_model
         uses styles from cp_model.
     Args:
-        cp_model: UnetModel or CellposeModel.model from which to get styles
-        device: Torch device ( default torch.gpu())where cellpose model is saved (torch.gpu() or torch.cpu())
-        pretrained_size(str): Path to pretrained size model
+        cp_model: Model from which to get styles.
+        device(Torch device):  Set cpu/gpu usage.
+        pretrained_size(str): Path to pretrained size model.
 
     """
 
@@ -371,16 +370,16 @@ class SizeModel():
             2. Resize image to predicted size and run CellposeModel to get output masks.
             Take the median object size of the predicted masks as the final predicted size.
         Args:
-            imgs(array): Array of 2D images
-            styles(array/list): Styles for images x - if x is None then styles must not be None
+            imgs(array): Array of 2D images.
+            styles(array/list): Styles for images x - if x is None then styles must not be None.
             channels(list): List of channels, either of length 2 or of length number of images by 2.
-            normalize(bool): Default True. Normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel
-            invert(bool): Default False. Invert image pixel intensity before running network
-            augment(bool): Default False. Tiles image with overlapping tiles and flips overlapped regions to augment
-            tile(bool): Default True. Tiles image to ensure GPU/CPU memory usage limited (recommended)
+            normalize(bool): Default True. Normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel.
+            invert(bool): Default False. Invert image pixel intensity before running network.
+            augment(bool): Default False. Tiles image with overlapping tiles and flips overlapped regions to augment.
+            tile(bool): Default True. Tiles image to ensure GPU/CPU memory usage limited (recommended).
         Returns:
-            diam(array[float]): Final estimated diameters from images x or styles style after running both steps
-            diam_style(array[float]): Estimated diameters from style alone
+            diam(array[float]): Final estimated diameters from images x or styles style after running both steps.
+            diam_style(array[float]): Estimated diameters from style alone.
 
         """
 
@@ -408,19 +407,19 @@ class SizeModel():
             diam[np.isnan(diam)] = self.diam_meanl
         else:
             diam = diam_style
-            logger.info('no images provided, using diameters estimated from styles alone')
+            logger.info('No images provided, using diameters estimated from styles alone')
         if nolist:
             return diam[0], diam_style[0]
         else:
             return diam, diam_style
 
     def _size_estimation(self, style):
-        """ Linear regression from style to size.Sizes were estimated using "diameters" from square estimates not circles;
-            therefore a conversion factor is included (to be removed)
+        """ Linear regression from style to size.Sizes were estimated using "diameters" from square estimates not circles.
+            Therefore a conversion factor is included.
         Args:
-            style(array) : Style of Unet model
+            style(array) : Style of Unet model.
         Returns:
-        szest(float): Diameter estimate
+        szest(float): Diameter estimateof cells/nuclei.
 
         """
         szest = np.exp(self.params['A'] @ (style - self.params['smean']).T +
