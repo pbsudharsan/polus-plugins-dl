@@ -18,6 +18,7 @@ def _taper_mask(ly=224, lx=224, sig=7.5):
         mask(array): Mask after tapered
 
     """
+
     bsize = max(224, max(ly, lx))
     xm = np.arange(bsize)
     xm = np.abs(xm - xm.mean())
@@ -89,7 +90,7 @@ def average_tiles(y, ysub, xsub, Ly, Lx):
 def make_tiles(imgi, bsize=224, augment=False, tile_overlap=0.1):
     """ Convert images to tiles for feeding to the network
 
-    This function maake tiles of image to run at test-time if augmented, tiles are flipped and tile_overlap=2.
+    This function makes tiles of image to run at test-time if augmented, tiles are flipped and tile_overlap=2.
     Tiles are augmented following ways:
         * original
         * flipped vertically
@@ -98,7 +99,7 @@ def make_tiles(imgi, bsize=224, augment=False, tile_overlap=0.1):
 
     Args:
         imgi(array[float32]) : Array that's nchan x Ly x Lx
-        bsize(float) :  Default 224. Size of tiles
+        bsize(float) : Default 224. Size of tiles
         augment(bool) : Default False. Flip tiles and set tile_overlap=2.
         tile_overlap(float): Default 0.1. Fraction of overlap of tiles
     Returns:
@@ -162,6 +163,7 @@ def make_tiles(imgi, bsize=224, augment=False, tile_overlap=0.1):
 
 def normalize99(img):
     """ Normalize image
+
     Normalize image so 0.0 is 1st percentile and 1.0 is 99th percentile.
 
     Args:
@@ -255,7 +257,7 @@ def normalize_img(img, axis=-1, invert=False):
 def resize_image(img0, Ly=None, Lx=None, rsz=None, interpolation=cv2.INTER_LINEAR):
     """ Resize image for computing flows / unresize for computing dynamics
 
-    Function to resize/unresize for computing flows/ unresize for computing dynamics.
+    This function is to resize/unresize for computing flows/ unresize for computing dynamics.
 
     Args:
         img0(array): Image of size [y x x x nchan]
@@ -407,7 +409,7 @@ def random_rotate_and_resize(X, Y=None, scale_range=1., xy=(224, 224),
 def _X2zoom(img, X2=1):
     """ Zoom in image
 
-    Function to zoom a image.
+    This function zooms into a image.
 
     Args:
         img(array): Numpy array that's Ly x Lx

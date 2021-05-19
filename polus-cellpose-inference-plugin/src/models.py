@@ -48,7 +48,7 @@ def dx_to_circ(dP):
 class Cellpose():
     """ Main class for Cellpose model segmentation
 
-    This is the main class which handles Cellpose segmentation model
+    This is the main class which handles Cellpose segmentation model.
 
     Args:
         model_type(str): Type of model.

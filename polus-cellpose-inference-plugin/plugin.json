@@ -1,7 +1,7 @@
   {
-      "name": "Cellpose-inference",
+      "name": "Cellpose Inference",
       "version": "0.4.0",
-      "title": "Cellpose-inference",
+      "title": "Cellpose Inference",
       "description": "Semantic segmentation of cyto/nuclei",
       "author": "Sudharsan Prativadi (sudharsan.prativadi@labshare.org)",
       "institution": "National Center for Advancing Translational Sciences, National Institutes of Health",

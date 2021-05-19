@@ -130,7 +130,7 @@ def download_url_to_file(url, dst, progress=True):
     Args:
         url(string): URL of the object to download
         dst(string): Full path where object will be saved, e.g. `/tmp/temporary_file`
-        progress (bool, optional): Whether or not to display a progress bar to stderr
+        progress(bool): Whether or not to display a progress bar to stderr
 
     """
 

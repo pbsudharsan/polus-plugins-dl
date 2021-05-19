@@ -16,7 +16,7 @@ def convbatchrelu(in_channels, out_channels, sz):
         out_channels(int): Number of channels in output image
         sz(int): Kernel size.
     Returns:
-        _ : Module that performs 2d convolution,normalisation and relu activation
+        _ : Module that performs 2d convolution, normalisation and relu activation
 
     """
 
@@ -27,9 +27,9 @@ def convbatchrelu(in_channels, out_channels, sz):
     )  
 
 def batchconv(in_channels, out_channels, sz):
-    """  Batch convolution
+    """ Batch convolution
 
-    This function performs normalisation ,relu activation and 2d convolution serially.
+    This function performs normalisation, relu activation and 2d convolution serially.
 
     Args:
         in_channels(int): Number of channels in input image.
@@ -47,7 +47,7 @@ def batchconv(in_channels, out_channels, sz):
     )  
 
 def batchconv0(in_channels, out_channels, sz):
-    """  Batch normalisation followed by convolution
+    """ Batch normalisation followed by convolution
 
     This function performs normalisation and 2d convolution serially.
 
@@ -66,9 +66,9 @@ def batchconv0(in_channels, out_channels, sz):
     )  
 
 class resdown(nn.Module):
-    """  Class for residual blocks
+    """ Class for residual blocks
 
-    This class handles residual blocks for  downsampling part of network.
+    This class handles residual blocks for downsampling part of network.
 
     Args:
         in_channels(int): Number of channels in input image.
@@ -164,7 +164,7 @@ class downsample(nn.Module):
                 self.down.add_module('conv_down_%d'%n, convdown(nbase[n], nbase[n+1], sz))
             
     def forward(self, x):
-        """ Forward pass of downsampling  performing maxpooling
+        """ Forward pass of downsampling performing maxpooling
 
         This function handles forward pass for the class.
 
@@ -213,9 +213,9 @@ class batchconvstyle(nn.Module):
         This function handles forward pass for the class.
 
         Args:
-            style(array): Vector after downsampling.
-            x(array): Array to perform batchconvstyle.
-            mkldnn(bool): Check for mkldnn.
+            style(array): Vector after downsampling
+            x(array): Array to perform batchconvstyle
+            mkldnn(bool): Check for mkldnn
 
         """
 
@@ -231,7 +231,7 @@ class batchconvstyle(nn.Module):
 class resup(nn.Module):
     """ Class to build residual blocks.
 
-    This class handles residual blocks for upsampling  part of the network.
+    This class handles residual blocks for upsampling part of the network.
 
     Args:
         in_channels(int): Number of channels in input image
@@ -273,7 +273,7 @@ class resup(nn.Module):
 class convup(nn.Module):
     """ Up Convolution class
 
-    This class handles  convolution  for upsampling part of network.
+    This class handles convolution for upsampling part of network.
 
     Args:
         in_channels(int): Number of channels in input image
@@ -310,7 +310,7 @@ class convup(nn.Module):
 class make_style(nn.Module):
     """ Style vector calculation
 
-    This Class handles calculation of style vector between downsampling and upsampling pass.
+    This class handles calculation of style vector between downsampling and upsampling pass.
 
     """
 
