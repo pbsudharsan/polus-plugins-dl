@@ -13,7 +13,7 @@
         {
           "name": "diameter",
           "type": "integer",
-          "description": "Select the diameter value for all images. Enter 0 for the plugin to predict diameter.",
+          "description": "Select the diameter value for all images. Enter 0 for the plugin to predict diameter for each image.",
           "required": false
         },
         {
@@ -37,7 +37,7 @@
         },
         {"name": "cpretrainedModel" ,
                 "type": "tensorflowModel",
-                "description": "Select the custom pretrained model for segmentation.",
+                "description": "Choose the custom pretrained model.",
                 "required": true
               }
       ],
@@ -58,18 +58,18 @@
         {
           "key": "inputs.diameter",
           "title": "Diameter",
-          "description": "Select the diameter value for all images. Enter 0 for the plugin to predict diameter."
+          "description": "Select the diameter value for all images. Enter 0 for the plugin to predict diameter for each image."
         },
 
         {
           "key": "inputs.pretrainedModel",
           "title": "Model to use(Cyto/nuclei)",
-          "description": "Object that needs to be segmented."
+          "description": "Type of segmentation."
         },
         {
           "key": "inputs.cpretrainedModel",
           "title": "Pretrained Model of choice",
-          "description": "Path to pretrained model to run the images.",
+          "description": "Choose the custom pretrained model.",
           "condition": "model.inputs.pretrainedModel=='custom'"
         }
       ]

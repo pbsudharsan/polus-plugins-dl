@@ -18,7 +18,7 @@ torch_CPU = torch.device('cpu')
 
 
 def parse_model_string(pretrained_model):
-    """ Parse string from filename eof pretrained model
+    """ Parse string from filename of pretrained model
 
     This function parses the pretrained model filename to get information on network parameters.
 
