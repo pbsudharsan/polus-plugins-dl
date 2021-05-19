@@ -6,11 +6,9 @@ import os
 import sys
 import time
 from collections import deque
-
 import numpy as np
 import torch
 from torch import optim, nn
-
 import resnet_torch
 import transforms
 import utils
@@ -25,7 +23,10 @@ torch_CPU = torch.device('cpu')
 
 
 def parse_model_string(pretrained_model):
-    """ Split the input pretrained model name
+    """ Parse string from filename of pretrained model
+
+    This function parses the pretrained model filename to get information on network parameters.
+
     Args:
         pretrained_model(string): Pretrained model input
     Returns:
@@ -35,6 +36,7 @@ def parse_model_string(pretrained_model):
         concatenation(bool): Set connection between upsampling and downsampling in network
 
     """
+
     if isinstance(pretrained_model, list):
         model_str = os.path.split(pretrained_model[0])[-1]
     else:
@@ -56,22 +58,32 @@ def parse_model_string(pretrained_model):
 
 def use_gpu(gpu_number=0):
     """ Check if gpu works
+
+    This function checks if gpu is available to use.
+
     Args:
         gpu_number(int): Gpu number
         istorch(bool): Use of torch
     Returns:
         _(bool) : True if gpu is present else false
+
     """
+
     return _use_gpu_torch(gpu_number)
 
 
 def _use_gpu_torch(gpu_number=0):
     """ Checks for Cuda installation
+
+    This function checks if Cuda is available in the environment.
+
     Args:
         gpu_number(int): Gpu number
     Returns:
         _(bool): True or False
+
     """
+
     try:
         device = torch.device('cuda:' + str(gpu_number))
         _ = torch.zeros([1, 2, 3]).to(device)
@@ -84,10 +96,15 @@ def _use_gpu_torch(gpu_number=0):
 
 def assign_device():
     """ Setting CUDA/CPU
+
+    This function decides whether to use GPU/CPU.
+
     Returns:
         device(torch.device): Set cpu/gpu
         pu(bool): True if gpu is being used
+
     """
+
     if _use_gpu_torch():
         device = torch_GPU
         gpu = True
@@ -101,12 +118,16 @@ def assign_device():
 
 def check_mkl(istorch=True):
     """ Test snippet to check if MKL-DNN working
+
+    This function checks if CPU is mkl enabled.
+
     Args:
         istorch(bool): Checks for torch usage
     Returns:
         mkl_enabled(bool): True if cpu is mkl enabled
 
     """
+
     print('Running test snippet to check if MKL-DNN working')
     if istorch:
         logger.info('See https://pytorch.org/docs/stable/backends.html?highlight=mkl')
@@ -123,12 +144,15 @@ def check_mkl(istorch=True):
 
 class UnetModel():
     """ Class for Unet model
+
+    This is the base class for Unet model.
+
     Args:
          pretrained_model(string): Pretrained model input
          net_avg(bool): Default True.Loads the 4 built-in networks and averages them if True, loads one network if False
          diam_mean(float): Default 27.Mean 'diameter', 27. is built in value for 'cyto' model
          device(torch): Where model is saved (torch.gpu() or torch.cpu()), overrides gpu input,
-                    recommended if you want to use a specific GPU (e.g. mx.gpu(4))
+         recommended if you want to use a specific GPU (e.g. mx.gpu(4))
          residual_on(bool): Set residual connections in network
          style_on(bool): Set styles for network
          concatenation(bool): Set connection between upsampling and downsampling in network
@@ -182,32 +206,41 @@ class UnetModel():
 
     def _to_device(self, x):
         """ Convert numpy to tensor
+
+        This function converts a numpy array to tensor.
+
         Args:
             x(array): Numpy array
         Returns:
             X(tensor): Tensor array
 
         """
+
         if self.torch:
             X = torch.from_numpy(x).float().to(self.device)
-
         return X
 
     def _from_device(self, X):
         """ Convert tensor to numpy
+
+        This function converts a tensor to numpy array.
+
         Args:
             X(tensor): Tensor array
         Returns:
             x(array): Numpy array
 
         """
+
         if self.torch:
             x = X.detach().cpu().numpy()
-
         return x
 
     def loss_fn(self, lbl, y):
         """ Loss function between true labels lbl and prediction y
+
+        This function calculates and returns loss between true labels and prediction.
+
         Args:
             lbl(array[float32]): Labelled array
             y(array[float32]): Predicted Label array
@@ -215,6 +248,7 @@ class UnetModel():
             loss(float): Loss between predicted and labelled array
 
         """
+
         # if available set boundary pixels to 2
         if lbl.shape[1] > 1 and self.nclasses > 2:
             boundary = lbl[:, 1] <= 4
@@ -227,7 +261,10 @@ class UnetModel():
         return loss
 
     def _train_step(self, x, lbl):
-        """  Function to calculate train loss
+        """  Calculates train loss
+
+        This function performs gradient descent and returns train loss.
+
         Args:
             x(array[float32]): Unlabelled array
             lbl(array[float32]): Labelled array
@@ -250,11 +287,13 @@ class UnetModel():
             train_loss = loss.item()
             self.optimizer.step()
             train_loss *= len(x)
-
         return train_loss
 
     def _test_eval(self, x, lbl):
         """ Test evaluation
+
+        This function evaluates the weights on test data.
+
         Args:
             x(array[float32]): Unlabelled array
             lbl(array[float32]): Labelled array
@@ -269,15 +308,18 @@ class UnetModel():
             loss = self.loss_fn(lbl, y)
             test_loss = loss.item()
             test_loss *= len(x)
-
         return test_loss
 
     def _set_optimizer(self, learning_rate, momentum, weight_decay):
         """ Optimizing function
+
+        This function does SGD on the cost function.
+
         Args:
             learning_rate(float): Learning rate
             momentum(float): Momentum. Optimization parameter
             weight_decay(float): Weight decay
+
         """
         if self.torch:
             self.optimizer = optim.SGD(self.net.parameters(), lr=learning_rate,
@@ -285,10 +327,14 @@ class UnetModel():
 
     def _set_learning_rate(self, lr):
         """ Set learning rate
+
+        This function sets learning rate to a dictionary.
+
         Args:
             learning_rate(float): Learning rate
 
         """
+
         if self.torch:
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] = lr
@@ -296,7 +342,10 @@ class UnetModel():
     def _set_criterion(self):
         """ Set loss criterion
 
+        This function calculates and sets the test/train loss.
+
         """
+
         if self.torch:
             self.criterion = nn.MSELoss(reduction='mean')
             self.criterion2 = nn.BCEWithLogitsLoss(reduction='mean')
@@ -306,7 +355,10 @@ class UnetModel():
                    pretrained_model=None, save_path=None, save_every=100,
                    learning_rate=0.2, n_epochs=500, momentum=0.9, weight_decay=0.00001,
                    batch_size=8, rescale=True, netstr='cellpose', early_stopping=5):
-        """ Train function uses loss function self.loss_fn
+        """ Training function
+
+        This function handles training and function call to neural network
+
         Args:
             train_data(list[array]): Images for training
             train_labels(list[array]): Labels for train_data, where 0=no masks; 1,2,...=mask labels
@@ -324,18 +376,15 @@ class UnetModel():
         Returns:
             model_path(str): Model path
 
-         """
+        """
+
         d = datetime.datetime.now()
         self.learning_rate = learning_rate
         self.n_epochs = n_epochs
         self.batch_size = batch_size
-
         self._set_optimizer(self.learning_rate, momentum, weight_decay)
-
         self._set_criterion()
-
         nimg = len(train_data)
-
         # compute average cell diameter
         if rescale:
             diam_train = np.array(
@@ -359,7 +408,6 @@ class UnetModel():
         logger.info('Ntrain = %d' % nimg)
         if test_data is not None:
             logger.info('Ntest = %d' % len(test_data))
-
         # set learning rate schedule
         LR = np.linspace(0, self.learning_rate, 10)
         if self.n_epochs > 250:
@@ -368,11 +416,8 @@ class UnetModel():
                 LR = np.append(LR, LR[-1] / 2 * np.ones(10))
         else:
             LR = np.append(LR, self.learning_rate * np.ones(max(0, self.n_epochs - 10)))
-
         tic = time.time()
-
         lavg, nsum = 0, 0
-
         if save_path is not None:
             _, file_label = os.path.split(save_path)
             file_path = os.path.join(save_path)
@@ -381,18 +426,14 @@ class UnetModel():
                 os.makedirs(file_path)
         else:
             logger.info('WARNING: no save_path given, model not saving')
-
         ksave = 0
         rsc = 1.0
-
         # cannot train with mkldnn
         self.net.mkldnn = False
-
         for iepoch in range(self.n_epochs):
             np.random.seed(iepoch)
             rperm = np.random.permutation(nimg)
             self._set_learning_rate(LR[iepoch])
-
             for ibatch in range(0, nimg, batch_size):
                 inds = rperm[ibatch:ibatch + batch_size]
                 rsc = diam_train[inds] / self.diam_mean if rescale else np.ones(len(inds),
@@ -400,11 +441,9 @@ class UnetModel():
                 imgi, lbl, scale = transforms.random_rotate_and_resize(
                     [train_data[i] for i in inds], Y=[train_labels[i][1:] for i in inds],
                     rescale=rsc, scale_range=scale_range, unet=self.unet)
-
                 train_loss = self._train_step(imgi, lbl)
                 lavg += train_loss
                 nsum += len(imgi)
-
             if iepoch % 10 == 0 or iepoch < 10:
                 lavg = lavg / nsum
                 if test_data is not None:
@@ -421,9 +460,7 @@ class UnetModel():
                             scale_range=0., rescale=rsc, unet=self.unet)
                         if self.unet and lbl.shape[1] > 1 and rescale:
                             lbl[:, 1] *= scale[0] ** 2
-
                         test_loss = self._test_eval(imgi, lbl)
-
                         lavgt += test_loss
                         nsum += len(imgi)
                     loss_history.append(lavgt / nsum)
@@ -438,22 +475,18 @@ class UnetModel():
                             logger.info('Saving network parameters')
                             self.net.save_model(os.path.join(file_path, file))
                             sys.exit()
-
                 else:
                     logger.info('Epoch %d, Time %4.1fs, Loss %2.4f, LR %2.4f' %
                                 (iepoch, time.time() - tic, lavg, LR[iepoch]))
                 lavg, nsum = 0, 0
-
             # if save_path is not None:
             if iepoch == self.n_epochs - 1 or iepoch % save_every == 1:
                 # save model at the end
                 file = '{}_{}_{}'.format(self.net_type, file_label,
-                                         d.strftime("%Y_%m_%d_%H_%M_%S.%f"))
+                                         d.strftimdoese("%Y_%m_%d_%H_%M_%S.%f"))
                 ksave += 1
                 logger.info('Saving network parameters')
                 self.net.save_model(os.path.join(file_path, file))
-
         # reset to mkldnn if available
         self.net.mkldnn = self.mkldnn
-
         return file

@@ -8,10 +8,8 @@ Plugin requires user to specify:
 1. Path to zarr file containing vector field and labels of the images.
 2. Path to unlabelled image collection.
 
-All the other arguments are default parameters but have default value. Check options for the default
-value.
-
-Things to keep in mind when choosing values for the arguments:
+All the other arguments are not necessary but have a default value. Check options for default
+values of the other arguments. Things to keep in mind when choosing values for these arguments:
 
 1. If 0 is passed as argument for diameter no rescaling of images is done.
 2. Choosing cyto/nuclei as arguments for pretrainedModel makes the plugin use weights released by
@@ -19,8 +17,7 @@ Things to keep in mind when choosing values for the arguments:
    input custom pretrained models.
 3. Training will stop if test loss hasn't reduced over 5 computations i.e. Early stopping is set to 5.
 
-Check options for default argument values if there are any. This plugin outputs weights after
-training. Code has been tested with CUDA 10.1 , bfio:2.0.4 and runs on GPU by default.
+ This plugin outputs weights after training. Code has been tested with CUDA 10.1 , bfio:2.1.5 and runs on GPU by default.
 
 For more information on the neural network
 visit  [Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1). Check out their repo

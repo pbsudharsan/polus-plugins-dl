@@ -5,11 +5,9 @@ import random
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
-
 import numpy as np
 import zarr
 from bfio import BioReader
-
 import models
 import utils
 
@@ -26,10 +24,15 @@ urls = [
 
 def download_model_weights(pretrained_model, urls=urls):
     """ Downloading model weights  based on segmentation
+
+    This function downloads pretrained weights.
+
     Args:
         pretrained_model(str): Cyto/nuclei Segmentation
         urls(list): List of urls for model weights
+
     """
+
     # cellpose directory
     start = 0
     end = len(urls)
@@ -42,7 +45,6 @@ def download_model_weights(pretrained_model, urls=urls):
     cp_dir.mkdir(exist_ok=True)
     model_dir = cp_dir.joinpath('models')
     model_dir.mkdir(exist_ok=True)
-
     for url in urls:
         parts = urlparse(url)
         filename = os.path.basename(parts.path)
@@ -54,6 +56,9 @@ def download_model_weights(pretrained_model, urls=urls):
 
 def read(inpDir, flow_path, image_names):
     """ Reads vector field and unlabelled images
+
+    This function handles reading of zarr file and unlabelled images.
+
     Args:
         inpDir(string): Path to unlabeled images
         flow_path(array[float32]): Path to zarr file containing vector field of labeled images
@@ -67,25 +72,19 @@ def read(inpDir, flow_path, image_names):
     flow_list = []
     image_all = []
     root = zarr.open(str(Path(flow_path).joinpath('flow.zarr')), mode='r')
-
     for f in image_names:
         br = BioReader(str(Path(inpDir).joinpath(f).absolute()))
         mask_name = str(str(f).split('.', 1)[0] + '.' + str(f).split('.', 1)[1])
-
         if mask_name not in root.keys():
             logger.info('%s not present in zarr file' % mask_name)
             sys.exit()
         image_all.append(np.squeeze(br.read().astype(np.float32)))
-
         lbl = np.squeeze(root[mask_name]['lbl'])
         vec = np.squeeze(root[mask_name]['vector'])
-
         vec_final = np.concatenate((vec[:, :, 2:3], vec[:, :, 0:2]), axis=2).astype(np.float32)
         cont = np.concatenate((lbl[:, :, np.newaxis], vec_final), axis=2).astype(np.float32)
         cont = cont.transpose((2, 0, 1))
-
         flow_list.append(cont)
-
     return image_all, flow_list
 
 
@@ -144,7 +143,6 @@ if __name__ == "__main__":
     outDir = args.outDir
     logger.info('outDir = {}'.format(outDir))
     flow_path = args.flowPath
-
     train_fraction = args.trainFraction
 
     if pretrained_model == 'cyto' or pretrained_model == 'nuclei':
@@ -159,7 +157,6 @@ if __name__ == "__main__":
     elif pretrained_model is not None:
         cpmodel_path = os.fspath(pretrained_model)
         szmean = 30
-
     if pretrained_model is None or not Path(cpmodel_path).exists():
         cpmodel_path = False
         logger.info('Training from scratch')
@@ -184,12 +181,9 @@ if __name__ == "__main__":
     try:
 
         logger.info('Initializing ...')
-
         channels = [0, 0]
-
         image_names = [f.name for f in Path(inpDir).iterdir() if
                        f.is_file() and "".join(f.suffixes) == '.ome.tif']
-
         # Shuffle of images for test train split
         random.shuffle(image_names)
         idx = int(train_fraction * len(image_names))
@@ -199,13 +193,10 @@ if __name__ == "__main__":
             len(train_img_names), len(test_img_names)))
         diameter = args.diameter
         logger.info('Using diameter %0.2f for all images' % diameter)
-
         # Read train data
         train_images, train_labels = read(inpDir, flow_path, train_img_names)
-
         # Read test data
         test_images, test_labels = read(inpDir, flow_path, test_img_names)
-
         cpmodel_path = model.train(train_images, train_labels, train_files=train_img_names,
                                    test_data=test_images, test_labels=test_labels,
                                    test_files=test_img_names,

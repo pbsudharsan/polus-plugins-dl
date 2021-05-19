@@ -2,9 +2,7 @@
 
 import os
 import pathlib
-
 import numpy as np
-
 import transforms
 from core import UnetModel, assign_device, parse_model_string
 
@@ -13,6 +11,9 @@ model_dir = pathlib.Path.home().joinpath('.cellpose', 'models')
 
 class CellposeModel(UnetModel):
     """ Class for cellpose model
+
+    This class is the main class for the cellpose model.
+
     Args:
      gpu(bool): Whether or not to save model to GPU, will check if GPU available
      pretrained_model(str): Path to pretrained cellpose model(s).
@@ -34,7 +35,6 @@ class CellposeModel(UnetModel):
             pretrained_model = [pretrained_model]
         nclasses = 3  # 3 prediction maps (dY, dX and cellprob)
         self.nclasses = nclasses
-
         # load default cyto model if pretrained_model is None
         if model_type in ['cyto', 'nuclei']:
             torch_str = ['', 'torch'][self.torch]
@@ -44,7 +44,6 @@ class CellposeModel(UnetModel):
             pretrained_model = pretrained_model[0] if not net_avg else pretrained_model
             diam_mean = 30. if pretrained_model == 'cyto' else 17.
             residual_on, style_on, concatenation = True, True, False
-
         else:
             if pretrained_model:
                 params = parse_model_string(pretrained_model)
@@ -65,7 +64,10 @@ class CellposeModel(UnetModel):
                                                                                 ostr[concatenation])
 
     def loss_fn(self, lbl, y):
-        """ Loss function between true labels lbl and prediction y
+        """ Loss function
+
+        This function calculates loss between true labels and prediction.
+
         Args:
             lbl(array[float32]): Labeled images
             y(array[float32]) : Predicted label of given images
@@ -73,6 +75,7 @@ class CellposeModel(UnetModel):
             loss(float): BCEWithLogitsLoss + MSE loss
 
         """
+
         veci = 5. * self._to_device(lbl[:, 1:])
         lbl = self._to_device(lbl[:, 0] > .5)
         loss = self.criterion(y[:, :2], veci)
@@ -88,7 +91,10 @@ class CellposeModel(UnetModel):
               save_path=None, save_every=20,
               learning_rate=0.2, n_epochs=500, momentum=0.9, weight_decay=0.00001, batch_size=8,
               rescale=True):
-        """ Train network with images train_data
+        """ Train network with images
+
+        This function handles function call to the training network.
+
         Args:
             train_data(list[array]): Images for training
             train_labels(list[array]): Labels for train_data, where 0=no masks; 1,2,...=mask labels
@@ -110,6 +116,7 @@ class CellposeModel(UnetModel):
             model_path(str): Model path
 
         """
+
         train_data, train_labels, test_data, test_labels, run_test = transforms.reshape_train_test(
             train_data,
             train_labels,

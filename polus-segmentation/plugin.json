@@ -1,7 +1,7 @@
 {
-  "name": "Cellpose Training ",
+  "name": "Cellpose Training",
   "version": "0.1.4",
-  "title": "Cellpose Training  ",
+  "title": "Cellpose Training",
   "description": "Training Neural network to segment cyto/nuclei",
   "author": "Sudharsan Prativadi(sudharsan.prativadi@labshare.org)",
   "institution": "National Center for Advancing Translational Sciences, National Institutes of Health",
@@ -13,7 +13,7 @@
     {
       "name": "diameter",
       "type": "integer",
-      "description": "Default Diameter is 30 for cyto and 17 for nuclei. If diameter is 0 there will be no rescaling ",
+      "description": "Default Diameter is 30 for cyto and 17 for nuclei. If diameter is 0 there will be no rescaling",
       "required": false
     },
     {
@@ -25,7 +25,7 @@
     {
       "name": "pretrainedModel",
       "type": "enum",
-      "description": "Choose cell/nuclei to segment",
+      "description": "Choose cyto/nuclei to segment",
       "options": {
         "values": [
           "cyto",
@@ -50,37 +50,37 @@
     {
       "name": "learningRate",
       "type": "integer",
-      "description": "Learning rate.  Default 0.2",
+      "description": "Learning rate. Default value is 0.2",
       "required": false
     },
     {
       "name": "nEpochs",
       "type": "integer",
-      "description": "No of Epochs. Default 500",
+      "description": "No of Epochs. Default value is 500",
       "required": false
     },
     {
       "name": "batchSize",
       "type": "integer",
-      "description": "Batch size for training. Default 8",
+      "description": "Batch size for training. Default value is 8",
       "required": false
     },
     {
       "name": "residualOn",
       "type": "boolean",
-      "description": "Use residual connections. Default True",
+      "description": "Use residual connections. Default value is True",
       "required": false
     },
     {
       "name": "styleOn",
       "type": "boolean",
-      "description": "Use style vectors. Default True",
+      "description": "Use style vectors. Default value is True",
       "required": false
     },
     {
       "name": "concatenation",
       "type": "boolean",
-      "description": "Concatenate downsampled layers with upsampled layers (off by default which means they are added). Default False",
+      "description": "Concatenate downsampled layers with upsampled layers(off by default which means they are added). Default value is False",
       "required": false
     },
     {
@@ -121,7 +121,7 @@
     },
     {
       "key": "inputs.flowPath",
-      "title": "  Vector field of Labelled images",
+      "title": "Vector field of Labelled images",
       "description": "Path to zarr file. Output of Label to Vector plugin"
     },
     {
@@ -146,13 +146,13 @@
     },
     {
       "key": "inputs.styleOn",
-      "title": " Use style vector ",
+      "title": "Use style vector ",
       "description": "Use style vector"
     },
     {
       "key": "inputs.concatenation",
       "title": "Use concatenation ",
-      "description": "Concatenate downsampled layers with upsampled layers (off by default)"
+      "description": "Concatenate downsampled layers with upsampled layers(off by default)"
     },
     {
       "key": "inputs.trainFraction",
