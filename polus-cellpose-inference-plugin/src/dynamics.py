@@ -102,7 +102,6 @@ def masks_to_flows(masks):
             mu[:, sr.start + y - 1, sc.start + x - 1] = np.stack((dy, dx))
 
     mu /= (1e-20 + (mu ** 2).sum(axis=0) ** 0.5)
-
     return mu, mu_c
 
 
@@ -244,7 +243,6 @@ def follow_flows(dP, niter=200, interp=True, use_gpu=False):
 
         p[:, inds[:, 0], inds[:, 1]] = steps2D_interp(p[:, inds[:, 0], inds[:, 1]],
                                                       dP, niter, use_gpu=use_gpu)
-
     return p
 
 
@@ -300,7 +298,6 @@ def get_masks(p, iscell=None, rpad=20, flows=None, threshold=0.4):
                                indexing='ij')
         for i in range(dims):
             p[i, ~iscell] = inds[i][~iscell]
-
     for i in range(dims):
         pflows.append(p[i].flatten().astype('int32'))
         edges.append(np.arange(-.5 - rpad, shape0[i] + .5 + rpad, 1))
@@ -309,15 +306,12 @@ def get_masks(p, iscell=None, rpad=20, flows=None, threshold=0.4):
     hmax = h.copy()
     for i in range(dims):
         hmax = maximum_filter1d(hmax, 5, axis=i)
-
     seeds = np.nonzero(np.logical_and(h - hmax > -1e-6, h > 10))
     Nmax = h[seeds]
     isort = np.argsort(Nmax)[::-1]
     for s in seeds:
         s = s[isort]
-
     pix = list(np.array(seeds).T)
-
     shape = h.shape
     if dims == 3:
         expand = np.nonzero(np.ones((3, 3, 3)))
@@ -325,7 +319,6 @@ def get_masks(p, iscell=None, rpad=20, flows=None, threshold=0.4):
         expand = np.nonzero(np.ones((3, 3)))
     for e in expand:
         e = np.expand_dims(e, 1)
-
     for iter in range(5):
         for k in range(len(pix)):
             if iter == 0:
@@ -346,15 +339,12 @@ def get_masks(p, iscell=None, rpad=20, flows=None, threshold=0.4):
                 pix[k][i] = newpix[i][igood]
             if iter == 4:
                 pix[k] = tuple(pix[k])
-
     M = np.zeros(h.shape, np.int32)
     for k in range(len(pix)):
         M[pix[k]] = 1 + k
-
     for i in range(dims):
         pflows[i] = pflows[i] + rpad
     M0 = M[tuple(pflows)]
-
     # remove big masks
     _, counts = np.unique(M0, return_counts=True)
     big = np.prod(shape0) * 0.4
@@ -362,10 +352,8 @@ def get_masks(p, iscell=None, rpad=20, flows=None, threshold=0.4):
         M0[M0 == i] = 0
     _, M0 = np.unique(M0, return_inverse=True)
     M0 = np.reshape(M0, shape0)
-
     if threshold is not None and threshold > 0 and flows is not None:
         M0 = remove_bad_flow_masks(M0, flows, threshold=threshold)
         _, M0 = np.unique(M0, return_inverse=True)
         M0 = np.reshape(M0, shape0).astype(np.int32)
-
     return M0

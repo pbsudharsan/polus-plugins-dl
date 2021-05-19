@@ -64,7 +64,6 @@ class Cellpose():
         torch_str = ['', 'torch'][self.torch]
         # assign device (GPU or CPU)
         device, gpu = assign_device(self.torch)
-
         self.device = device
         self.gpu = gpu
         model_type = 'cyto' if model_type is None else model_type
@@ -74,17 +73,14 @@ class Cellpose():
         self.pretrained_size = os.fspath(
             model_dir.joinpath('size_%s%s_0.npy' % (model_type, torch_str)))
         self.diam_mean = 30. if model_type == 'cyto' else 17.
-
         if not net_avg:
             self.pretrained_model = self.pretrained_model[0]
-
         self.cp = CellposeModel(device=self.device, gpu=self.gpu,
                                 pretrained_model=self.pretrained_model,
                                 diam_mean=self.diam_mean, torch=self.torch)
         self.cp.model_type = model_type
         self.sz = SizeModel(device=self.device, pretrained_size=self.pretrained_size,
                             cp_model=self.cp)
-
         self.sz.model_type = model_type
 
     def eval(self, x, batch_size=8, channels=None, invert=False, normalize=True, diameter=30.,
@@ -135,7 +131,6 @@ class Cellpose():
 
         nimg = len(x)
         # make rescale into length of x
-
         if diameter is not None and not (not isinstance(diameter, (list, np.ndarray)) and
                                          (diameter == 0 or (
                                                  diameter == 30. and rescale is not None))):
@@ -162,7 +157,6 @@ class Cellpose():
                 if rescale is None:
                     rescale = np.ones(nimg, np.float32)
                 diams = self.diam_mean / rescale
-
         prob = self.cp.eval(x, batch_size=batch_size,
                             invert=invert,
                             rescale=rescale,
@@ -178,7 +172,6 @@ class Cellpose():
                             cellprob_threshold=cellprob_threshold,
                             min_size=min_size,
                             stitch_threshold=stitch_threshold, tile_size=tile_size)
-
         return prob
 
 
@@ -201,10 +194,7 @@ class CellposeModel(UnetModel):
     def __init__(self, pretrained_model=False, torch=True, gpu=None,
                  diam_mean=30., net_avg=True, device=None,
                  residual_on=True, style_on=True, concatenation=False):
-        """
 
-
-           """
         torch = True
         self.torch = torch
         if not device:
@@ -224,23 +214,21 @@ class CellposeModel(UnetModel):
                                 range(4)] if net_avg else os.fspath(model_dir.joinpath('cyto_0'))
             self.diam_mean = 30.
             residual_on, style_on, concatenation = True, True, False
-
         # initialize network
         super().__init__(pretrained_model=False,
                          diam_mean=diam_mean, net_avg=net_avg, device=device,
                          residual_on=residual_on, style_on=style_on, concatenation=concatenation,
                          gpu=gpu,
                          nclasses=nclasses, torch=torch)
-
         self.unet = False
         self.pretrained_model = pretrained_model
-
         if self.pretrained_model is not None and isinstance(self.pretrained_model, str):
             self.net.load_model(self.pretrained_model, cpu=(not self.gpu))
         ostr = ['off', 'on']
         self.net_type = 'cellpose_residual_{}_style_{}_concatenation_{}'.format(ostr[residual_on],
                                                                                 ostr[style_on],
                                                                                 ostr[concatenation])
+
 
     def eval(self, imgs, batch_size=8, channels=None, normalize=True, invert=False,
              rescale=None, diameter=None, anisotropy=None, net_avg=True,
@@ -292,7 +280,6 @@ class CellposeModel(UnetModel):
                 rescale = np.ones(nimg)
         elif isinstance(rescale, float):
             rescale = rescale * np.ones(nimg)
-
         iterator = trange(nimg) if nimg > 1 else range(nimg)
         if isinstance(self.pretrained_model, list) and not net_avg:
             self.net.load_model(self.pretrained_model[0], cpu=(not self.gpu))
@@ -353,7 +340,6 @@ class SizeModel():
     def __init__(self, cp_model, device=None, pretrained_size=None, **kwargs):
 
         super(SizeModel, self).__init__(**kwargs)
-
         self.pretrained_size = pretrained_size
         self.cp = cp_model
         self.device = self.cp.device

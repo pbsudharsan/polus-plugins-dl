@@ -52,5 +52,3 @@ This plugin takes 4 input argument and 1 output argument:
 | `--pretrainedModel` | Select the model based on structure you want to segment cyto/nuclei | Input | string |
 | `--cpretrainedModel` | Path to custom pretrained model | Input | string |
 | `--outDir` | Output collection | Output | Generic Data type |
-
-
