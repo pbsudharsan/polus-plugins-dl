@@ -1,4 +1,4 @@
-FROM   pytorch/pytorch:1.6.0-cuda10.1-cudnn7-devel
+FROM pytorch/pytorch:1.6.0-cuda10.1-cudnn7-devel
 
 COPY VERSION /
 
@@ -7,7 +7,7 @@ ARG DATA_DIR="/data"
 
 RUN apt-get update
 
-RUN  pip install --upgrade pip --no-cache-dir
+RUN pip install --upgrade pip --no-cache-dir
 
 RUN mkdir -p ${EXEC_DIR} \
     && mkdir -p ${DATA_DIR}/inputs \
@@ -15,10 +15,6 @@ RUN mkdir -p ${EXEC_DIR} \
 
 COPY src ${EXEC_DIR}/
 WORKDIR ${EXEC_DIR}
-
-RUN pip  install  numpy --upgrade
-
-RUN apt-get -y install   libaec-dev libblosc-dev libbrotli-dev libbz2-dev libgif-dev libopenjp2-7-dev liblcms2-dev libjxr-dev liblz4-dev libsnappy-dev
 
 RUN apt-get -y install libgomp1 gfortran libglib2.0.0 libgles2-mesa-dev
 

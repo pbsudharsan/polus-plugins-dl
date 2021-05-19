@@ -1,4 +1,3 @@
-
 # Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
 
 import colorsys
@@ -6,7 +5,6 @@ import os
 import shutil
 import tempfile
 from urllib.request import urlopen
-
 import numpy as np
 from scipy.ndimage import find_objects, binary_fill_holes
 from tqdm import tqdm
@@ -14,12 +12,16 @@ from tqdm import tqdm
 
 def rgb_to_hsv(arr):
     """ Convert array from rgb to hsv color system
+
+    This function converts array from rgb to hsv color system.
+
     Args:
-        arr(float): Rgb array.
+        arr(float): Rgb array
     Returns:
-        hsv(float): Hsv array.
+        hsv(float): Hsv array
 
     """
+
     rgb_to_hsv_channels = np.vectorize(colorsys.rgb_to_hsv)
     r, g, b = np.rollaxis(arr, axis=-1)
     h, s, v = rgb_to_hsv_channels(r, g, b)
@@ -28,13 +30,17 @@ def rgb_to_hsv(arr):
 
 
 def hsv_to_rgb(arr):
-    """Convert array from hsv to rgb color system
+    """ Convert array from hsv to rgb color system
+
+    This function converts array from hsv to rgb color system.
+
     Args:
-        hsv(float): Hsv array.
+        hsv(float): Hsv array
     Returns:
-        arr(float): Rgb array.
+        arr(float): Rgb array
 
     """
+
     hsv_to_rgb_channels = np.vectorize(colorsys.hsv_to_rgb)
     h, s, v = np.rollaxis(arr, axis=-1)
     r, g, b = hsv_to_rgb_channels(h, s, v)
@@ -44,13 +50,17 @@ def hsv_to_rgb(arr):
 
 def diameters(masks):
     """ Get median 'diameter' of masks
+
+    This function calculates the diameter of masks.
+
     Args:
-        masks(array): Numpy array(Ly x Lx).
+        masks(array): Numpy array(Ly x Lx)
     Returns:
-        md(int): Median of diameter.
-        counts(int): Count of unique masks.
+        md(int): Median of diameter
+        counts(int): Count of unique masks
 
     """
+
     _, counts = np.unique(np.int32(masks), return_counts=True)
     counts = counts[1:]
     md = np.median(counts ** 0.5)
@@ -62,30 +72,37 @@ def diameters(masks):
 
 def normalize99(img):
     """ Normalize image so 0.0 is 1st percentile and 1.0 is 99th percentile
+
+    This function normalizes input image.
+
     Args:
-        img(array) : Numpy array that's (x  Ly x Lx x nchan).
+        img(array) : Numpy array that's (x  Ly x Lx x nchan)
     Returns:
-        x(array) : Normalised numpy image.
+        x(array) : Normalised numpy image
 
     """
+
     X = img.copy()
     X = (X - np.percentile(X, 1)) / (np.percentile(X, 99) - np.percentile(X, 1))
     return X
 
 
 def fill_holes_and_remove_small_masks(masks, min_size=15):
-    """ Fill holes in masks (2D/3D) and discard masks smaller than min_size (2D)
-    fill holes in each mask using scipy.ndimage.morphology.binary_fill_holes
+    """  Fill mask with unique value
+
+    This function fills holes in masks (2D/3D) and discard masks smaller than min_size (2D).
+
     Args:
         masks(array[int]): 2D or 3D array. Labelled masks, 0=NO masks; 1,2,...=mask labels.
         min_size(int): Default 15. Minimum number of pixels per mask, can turn off with -1.
+
     Returns:
         masks(array[int]): 2D or 3D array. Masks with holes filled and masks smaller than min_size removed.
     
     """
+
     if masks.ndim > 3 or masks.ndim < 2:
         raise ValueError('masks_to_outlines takes 2D or 3D array, not %dD array' % masks.ndim)
-
     slices = find_objects(masks)
     j = 0
     for i, slc in enumerate(slices):
@@ -106,14 +123,17 @@ def fill_holes_and_remove_small_masks(masks, min_size=15):
 
 
 def download_url_to_file(url, dst, progress=True):
-    """Download object at the given URL to a local path.
+    """Download object at the given URL to a local path
+
+    This function downloads file from a given URL.
 
     Args:
-        url(string): URL of the object to download.
-        dst(string): Full path where object will be saved, e.g. `/tmp/temporary_file`.
-        progress (bool, optional): Whether or not to display a progress bar to stderr.
+        url(string): URL of the object to download
+        dst(string): Full path where object will be saved, e.g. `/tmp/temporary_file`
+        progress (bool, optional): Whether or not to display a progress bar to stderr
 
     """
+
     file_size = None
     u = urlopen(url)
     meta = u.info()

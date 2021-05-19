@@ -4,14 +4,14 @@ import os
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
-
 import numpy as np
 import zarr
 from bfio import BioReader
-
 import models
 from utils import download_url_to_file
 
+TILE_SIZE = 1024
+TILE_OVERLAP = 256
 urls = [
     'https://www.cellpose.org/models/cytotorch_0',
     'https://www.cellpose.org/models/cytotorch_1',
@@ -26,12 +26,16 @@ urls = [
 
 
 def download_model_weights(pretrained_model, urls=urls):
-    """ Downloading model weights  based on segmentation
+    """ Downloading model weights based on segmentation
+
+    This function downloads pretrained weights.
+
     Args:
         pretrained_model(str): Cyto/nuclei Segementation
         urls(list): List of urls for model weights
 
     """
+
     # cellpose directory
     start = 0
     end = len(urls)
@@ -52,10 +56,6 @@ def download_model_weights(pretrained_model, urls=urls):
         if not os.path.exists(cached_file):
             sys.stderr.write('Downloading: "{}" to {}\n'.format(url, cached_file))
             download_url_to_file(url, cached_file, progress=True)
-
-
-TILE_SIZE = 1024
-TILE_OVERLAP = 512
 
 
 def main():
@@ -138,32 +138,25 @@ def main():
             for z in range(br.Z):
                 # Iterating based on tile size
                 for x in range(0, br.X, TILE_SIZE):
-
                     for y in range(0, br.Y, TILE_SIZE):
                         x_min = max([0, x - TILE_OVERLAP])
                         x_max = min([br.X, x + TILE_SIZE + TILE_OVERLAP])
-
                         y_min = max([0, y - TILE_OVERLAP])
                         y_max = min([br.Y, y + TILE_SIZE + TILE_OVERLAP])
-
                         tile_img = br[y_min:y_max, x_min:x_max, z:z + 1, 0, 0].squeeze()
                         logger.info('Calculating flows on slice %d tile(y,x) %d :%d %d:%d ', z, y,
                                     y_max, x, x_max)
                         prob = model.eval(tile_img, diameter=diameter, rescale=rescale)
-
                         x_overlap = x - x_min
                         x_min = x
                         x_max = min([br.X, x + TILE_SIZE])
-
                         y_overlap = y - y_min
                         y_min = y
                         y_max = min([br.Y, y + TILE_SIZE])
-
                         prob = prob[np.newaxis,]
                         logger.info('Writing the vector field of  slice %d tile(y,x) %d :%d %d:%d ',
                                     z, y, y_max, x, x_max)
                         prob = prob[..., np.newaxis]
-
                         prob = prob.transpose((1, 2, 0, 3, 4))
                         root[f]['vector'][y_min:y_max, x_min:x_max, z:z + 1, 0:3, 0:1] = prob[
                                                                                          y_overlap:y_max - y_min + y_overlap,

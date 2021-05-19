@@ -1,16 +1,17 @@
 #Code sourced code from Cellpose repo https://github.com/MouseLand/cellpose/tree/master/cellpose
 
 import numpy as np
-
 import dynamics
 
 
 def flow_error(maski, dP_net):
     """ Error in flows from predicted masks vs flows predicted by network run on image
-    This function serves to benchmark the quality of masks, it works as follows
+
+    This function serves to benchmark the quality of masks, it works as follows:
     1. The predicted masks are used to create a flow diagram
     2. The mask-flows are compared to the flows that the network predicted
     If there is a discrepancy between the flows, it suggests that the mask is incorrect.
+
     Args:
         maski(array[int]): Masks produced from running dynamics on dP_net,where 0=NO masks; 1,2... are mask labels.
         dP_net(array[float]): ND flows where dP_net.shape[1:] = maski.shape.
@@ -19,6 +20,7 @@ def flow_error(maski, dP_net):
         dP_masks(array[float]): ND flows produced from the predicted masks.
     
     """
+
     if dP_net.shape[1:] != maski.shape:
         print('ERROR: net flow is not same size as predicted masks')
         return
