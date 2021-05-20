@@ -482,7 +482,7 @@ class UnetModel():
             if iepoch == self.n_epochs - 1 or iepoch % save_every == 1:
                 # save model at the end
                 file = '{}_{}_{}'.format(self.net_type, file_label,
-                                         d.strftimdoese("%Y_%m_%d_%H_%M_%S.%f"))
+                                         d.strftime("%Y_%m_%d_%H_%M_%S.%f"))
                 ksave += 1
                 logger.info('Saving network parameters')
                 self.net.save_model(os.path.join(file_path, file))

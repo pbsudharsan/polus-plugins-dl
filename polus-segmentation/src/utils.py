@@ -6,7 +6,9 @@ from urllib.request import urlopen
 import numpy as np
 
 def download_url_to_file(url, dst, progress=True):
-    """ Download object at the given URL to a local path.
+    """ Download object at the given URL to a local path
+
+    This function downloads object at the given URL to a local path.
 
     Args:
         url (string): URL of the object to download
@@ -45,7 +47,10 @@ def download_url_to_file(url, dst, progress=True):
             os.remove(f.name)
 
 def diameters(masks):
-    """ Get median 'diameter' of masks
+    """ Get median diameter of masks
+
+    This function calculates median diameter of masks.
+
     Args:
         masks(array[float]): Label
     Return:

@@ -1,9 +1,7 @@
 # Cellpose Training plugin
 
 This plugin lets users Cellpose models to train a model to segment cyto/nuclei in 2d images.
-Cellpose is a generalist algorithm for cytoplasm and nucleus segmentation.
-
-Plugin requires user to specify:
+Cellpose is a generalist algorithm for cytoplasm and nucleus segmentation. Plugin requires user to specify:
 1. Path to zarr file containing vector field and labels of the images.
 2. Path to unlabelled image collection.
 
@@ -15,7 +13,7 @@ values of the arguments. Things to keep in mind when choosing values for these a
    input custom pretrained models.
 3. Training will stop if test loss hasn't reduced over 5 computations i.e. early stopping is set to 5.
 
-This plugin outputs weights after training. Code has been tested with CUDA:10.1, bfio:2.1.5 and runs 
+This plugin outputs weights after training, and the weights are saved every 20 epochs. Code has been tested with CUDA:10.1, bfio:2.1.5 and runs 
 on GPU by default.
 
 For more information on the neural network
