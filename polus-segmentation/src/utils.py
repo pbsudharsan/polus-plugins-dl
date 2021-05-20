@@ -3,7 +3,6 @@
 import os, tempfile, shutil
 from tqdm import tqdm
 from urllib.request import urlopen
-
 import numpy as np
 
 def download_url_to_file(url, dst, progress=True):

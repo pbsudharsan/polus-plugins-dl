@@ -7,8 +7,8 @@ Plugin requires user to specify:
 1. Path to zarr file containing vector field and labels of the images.
 2. Path to unlabelled image collection.
 
-All the other arguments are not necessary but have a default value. Check options for default
-values of the other arguments. Things to keep in mind when choosing values for these arguments:
+All the other arguments are not necessary but have a default value associated. Check options for default
+values of the arguments. Things to keep in mind when choosing values for these arguments:
 1. If 0 is passed as argument for diameter no rescaling of images is done.
 2. Choosing cyto/nuclei as arguments for pretrainedModel makes the plugin use weights released by
    authors of the repo. Ignore the argument to train from scratch. This argument can also be used to

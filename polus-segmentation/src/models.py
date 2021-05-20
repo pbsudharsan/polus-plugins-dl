@@ -18,7 +18,7 @@ class CellposeModel(UnetModel):
      gpu(bool): Whether or not to save model to GPU, will check if GPU available
      pretrained_model(str): Path to pretrained cellpose model(s).
      net_avg(bool): Default True. Loads the 4 built-in networks and averages them if True, loads one network if False
-     diam_mean(float): Default 27. Mean 'diameter', 27. Is built in value for 'cyto' model
+     diam_mean(float): Mean diameter 27. Its built in value for 'cyto' model
      device(torch): Where model is saved (torch.gpu() or torch.cpu())
 
     """
