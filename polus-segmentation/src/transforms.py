@@ -156,7 +156,7 @@ def reshape_and_normalize_data(train_data, test_data=None, channels=None, normal
     Args:
     train_data(list[float]): List of training images of size [Ly x Lx]
     test_data(list[float]): List of testing images of size [Ly x Lx]
-    channels(list[int]): channel to segment
+    channels(list[int]): Channel to segment
     normalize(bool): Normalize data so 0.0=1st percentile and 1.0=99th percentile of image intensities in each channel
     Returns:
     train_data(list[float]): List of training images of size [2 x Ly x Lx]

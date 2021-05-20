@@ -8,12 +8,14 @@ import numpy as np
 
 def download_url_to_file(url, dst, progress=True):
     """ Download object at the given URL to a local path.
+
     Args:
         url (string): URL of the object to download
         dst (string): Full path where object will be saved, e.g. `/tmp/temporary_file`
         progress (bool, optional): Whether or not to display a progress bar to stderr
 
     """
+
     file_size = None
     u = urlopen(url)
     meta = u.info()

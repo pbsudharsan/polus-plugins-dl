@@ -149,10 +149,9 @@ class UnetModel():
 
     Args:
          pretrained_model(string): Pretrained model input
-         net_avg(bool): Default True.Loads the 4 built-in networks and averages them if True, loads one network if False
-         diam_mean(float): Default 27.Mean 'diameter', 27. is built in value for 'cyto' model
+         net_avg(bool): Loads the 4 built-in networks and averages them if True, loads one network if False
+         diam_mean(float): Mean diameter
          device(torch): Where model is saved (torch.gpu() or torch.cpu()), overrides gpu input,
-         recommended if you want to use a specific GPU (e.g. mx.gpu(4))
          residual_on(bool): Set residual connections in network
          style_on(bool): Set styles for network
          concatenation(bool): Set connection between upsampling and downsampling in network

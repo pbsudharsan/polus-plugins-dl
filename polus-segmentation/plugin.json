@@ -13,7 +13,7 @@
     {
       "name": "diameter",
       "type": "integer",
-      "description": "Default Diameter is 30 for cyto and 17 for nuclei. If diameter is 0 there will be no rescaling",
+      "description": "Diameter of objects in image collection. If the diameter is 0 there will be no rescaling",
       "required": false
     },
     {
@@ -86,7 +86,7 @@
     {
       "name": "trainFraction",
       "type": "integer",
-      "description": "Test train split. Default 0.8",
+      "description": "Test train split. Default value is 0.8",
       "required": false
     }
   ],

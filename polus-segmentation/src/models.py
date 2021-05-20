@@ -63,6 +63,7 @@ class CellposeModel(UnetModel):
                                                                                 ostr[style_on],
                                                                                 ostr[concatenation])
 
+
     def loss_fn(self, lbl, y):
         """ Loss function
 
@@ -84,6 +85,7 @@ class CellposeModel(UnetModel):
         loss2 = self.criterion2(y[:, -1], lbl)
         loss = loss + loss2
         return loss
+
 
     def train(self, train_data, train_labels, train_files=None,
               test_data=None, test_labels=None, test_files=None,
@@ -110,7 +112,7 @@ class CellposeModel(UnetModel):
             learning_rate(float): Default 0.2. Learning rate for training
             n_epochs(int): Default 500. How many times to go through whole training set during training
             weight_decay(float): Default 0.00001. Weight decay
-            batch_size(int): Default 8. Number of 224x224 patches to run simultaneously on the GPU
+            batch_size(int): Default 8. Number of 224x224 patches to run simultaneously
             rescale(bool): Whether or not to rescale images to diam_mean during training
         Returns:
             model_path(str): Model path
@@ -123,12 +125,10 @@ class CellposeModel(UnetModel):
             test_data,
             test_labels,
             channels, normalize)
-
         model_path = self._train_net(train_data, train_labels,
                                      test_data, test_labels,
                                      pretrained_model, save_path, save_every,
                                      learning_rate, n_epochs, momentum, weight_decay, batch_size,
                                      rescale)
-
         self.pretrained_model = model_path
         return model_path

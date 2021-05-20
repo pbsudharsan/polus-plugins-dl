@@ -1,23 +1,22 @@
 # Cellpose Training plugin
 
 This plugin lets users Cellpose models to train a model to segment cyto/nuclei in 2d images.
-Cellpose is a generalist algorithm for cell and nucleus segmentation.
+Cellpose is a generalist algorithm for cytoplasm and nucleus segmentation.
 
 Plugin requires user to specify:
-
 1. Path to zarr file containing vector field and labels of the images.
 2. Path to unlabelled image collection.
 
 All the other arguments are not necessary but have a default value. Check options for default
 values of the other arguments. Things to keep in mind when choosing values for these arguments:
-
 1. If 0 is passed as argument for diameter no rescaling of images is done.
 2. Choosing cyto/nuclei as arguments for pretrainedModel makes the plugin use weights released by
    authors of the repo. Ignore the argument to train from scratch. This argument can also be used to
    input custom pretrained models.
-3. Training will stop if test loss hasn't reduced over 5 computations i.e. Early stopping is set to 5.
+3. Training will stop if test loss hasn't reduced over 5 computations i.e. early stopping is set to 5.
 
- This plugin outputs weights after training. Code has been tested with CUDA 10.1 , bfio:2.1.5 and runs on GPU by default.
+This plugin outputs weights after training. Code has been tested with CUDA:10.1, bfio:2.1.5 and runs 
+on GPU by default.
 
 For more information on the neural network
 visit  [Cellpose](https://www.biorxiv.org/content/10.1101/2020.02.02.931238v1). Check out their repo
@@ -64,13 +63,3 @@ This plugin takes 11 input argument and 1 output argument:
 | `--pretrainedModel` | Select the model based on structure you want to segment cyto/nuclei/custom model path | Input | string |
 | `--cpretrainedModel` | Path to custom pretrained model | Input | string |
 | `--outDir` | Output collection | Output | Tensorflow model |
-
-
-
-
-
-
-
-
-
-

@@ -10,7 +10,7 @@ sz = 3
 def convbatchrelu(in_channels, out_channels, sz):
     """ Batch convolution followed by relu activation
 
-    This function performs 2d convolution,normalisation and relu activation serially.
+    This function performs 2d convolution, normalisation and relu activation serially.
 
     Args:
        in_channels(int): Number of channels in input image
@@ -99,12 +99,11 @@ class resdown(nn.Module):
         Args:
             x(array[float32]): Input array
         Returns:
-            x(array[float32]): Array after performing series of normalisation and convolution
-                               operations
+            x(array[float32]): Array after performing series of normalisation and convolution operations
 
         """
 
-        x = self.proj(x) + self.conv[1](self.conv[0](x))
+        x = self.proj(x) + self.conv[1](self.conv[0](x)
         x = x + self.conv[3](self.conv[2](x))
         return x
 
@@ -170,7 +169,7 @@ class downsample(nn.Module):
                 self.down.add_module('conv_down_%d' % n, convdown(nbase[n], nbase[n + 1], sz))
 
     def forward(self, x):
-        """ Forward pass of downsampling  performing maxpooling.
+        """ Forward pass of downsampling performing maxpooling.
 
         This function handles forward pass for the class.
 
@@ -241,7 +240,7 @@ class batchconvstyle(nn.Module):
 class resup(nn.Module):
     """ Class to build residual blocks
 
-    This class handles residual blocks for upsampling  part of the network.
+    This class handles residual blocks for upsampling part of the network.
 
     Args:
         in_channels(int): Number of channels in input image
@@ -288,7 +287,7 @@ class resup(nn.Module):
 class convup(nn.Module):
     """ Up Convolution class
 
-    This class handles  convolution  for upsampling part of network.
+    This class handles convolution for upsampling part of network.
 
     Args:
         in_channels(int): Number of channels in input image
@@ -317,7 +316,7 @@ class convup(nn.Module):
             y(array): Kernel size
             style(array): Vector after downsampling
         Returns:
-            x(array):  Array after upconvolution
+            x(array): Array after upconvolution
 
         """
 
@@ -328,7 +327,7 @@ class convup(nn.Module):
 class make_style(nn.Module):
     """ Style vector calculation
 
-    Class handling style vector between downsampling and upsampling pass
+    Class handling style vector between downsampling and upsampling pass.
 
     """
 
