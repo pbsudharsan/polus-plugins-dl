@@ -184,13 +184,11 @@ if __name__ == "__main__":
         channels = [0, 0]
         image_names = [f.name for f in Path(inpDir).iterdir() if
                        f.is_file() and "".join(f.suffixes) == '.ome.tif']
-        img_fin = [f for f in image_names if str(f).split('_')[3] == 'c1.ome.tif']
-        img_fin = img_fin[:500]
         # Shuffle of images for test train split
-        random.shuffle(img_fin)
-        idx = int(train_fraction * len(img_fin))
-        train_img_names = img_fin[0:idx]
-        test_img_names = img_fin[idx:]
+        random.shuffle(image_names)
+        idx = int(train_fraction * len(image_names))
+        train_img_names = image_names[0:idx]
+        test_img_names = image_names[idx:]
         logger.info('Running cellpose on %d train images  %d test images' % (
             len(train_img_names), len(test_img_names)))
         diameter = args.diameter
